@@ -15,6 +15,7 @@
  */
 package com.flipkart.foxtrot.core.datastore.impl.hbase;
 
+import com.codahale.metrics.Timer;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +26,7 @@ import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.querystore.DocumentTranslator;
+import com.flipkart.foxtrot.core.util.MetricUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -87,8 +89,10 @@ public class HBaseDataStore implements DataStore {
         }
         org.apache.hadoop.hbase.client.Table hTable = null;
         Document translatedDocument = null;
+        Timer.Context timer = null;
         try {
             translatedDocument = translator.translate(table, document);
+            timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save");
             hTable = tableWrapper.getTable(table);
             hTable.put(getPutForDocument(translatedDocument));
         } catch (JsonProcessingException e) {
@@ -102,6 +106,9 @@ public class HBaseDataStore implements DataStore {
                 } catch (IOException e) {
                     logger.error("Error closing HBase table", e);
                 }
+            }
+            if (null != timer) {
+                timer.stop();
             }
         }
         return translatedDocument;
@@ -144,6 +151,7 @@ public class HBaseDataStore implements DataStore {
         }
 
         org.apache.hadoop.hbase.client.Table hTable = null;
+        Timer.Context timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk");
         try {
             hTable = tableWrapper.getTable(table);
             hTable.put(puts);
@@ -157,6 +165,7 @@ public class HBaseDataStore implements DataStore {
                     logger.error("Error closing HBase table", e);
                 }
             }
+            timer.stop();
         }
         return translatedDocuments.build();
     }
@@ -165,6 +174,7 @@ public class HBaseDataStore implements DataStore {
     @Timed
     public Document get(final Table table, String id) throws FoxtrotException {
         org.apache.hadoop.hbase.client.Table hTable = null;
+        Timer.Context timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get");
         try {
             Get get = new Get(Bytes.toBytes(translator.rawStorageIdFromDocumentId(table, id)))
                     .addColumn(COLUMN_FAMILY, DOCUMENT_FIELD_NAME)
@@ -194,6 +204,7 @@ public class HBaseDataStore implements DataStore {
                     logger.error("Error closing HBase table", e);
                 }
             }
+            timer.stop();
         }
     }
 
@@ -204,6 +215,7 @@ public class HBaseDataStore implements DataStore {
             throw FoxtrotExceptions.createBadRequestException(table.getName(), "Empty ID List");
         }
         org.apache.hadoop.hbase.client.Table hTable = null;
+        Timer.Context timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getAll");
         try {
             List<Get> gets = new ArrayList<>(ids.size());
             for (String id : ids) {
@@ -253,6 +265,7 @@ public class HBaseDataStore implements DataStore {
                     logger.error("Error closing HBase table", e);
                 }
             }
+            timer.stop();
         }
     }
 

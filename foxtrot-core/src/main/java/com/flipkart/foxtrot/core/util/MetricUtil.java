@@ -2,6 +2,7 @@ package com.flipkart.foxtrot.core.util;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +59,11 @@ public class MetricUtil {
                 .update(duration, TimeUnit.MILLISECONDS);
         metrics.timer(String.format("%s.%s.%s.%s.%s", packagePrefix, actionMetricPrefix, opcode, metricKey, status))
                 .update(duration, TimeUnit.MILLISECONDS);
+    }
+
+    public Timer.Context startTimer(Class cls, String meterName) {
+        String name = metrics.name(cls, meterName + ".timer");
+        return metrics.timer(name).time();
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
