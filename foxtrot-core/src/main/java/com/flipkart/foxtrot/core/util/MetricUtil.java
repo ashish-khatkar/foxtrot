@@ -61,9 +61,13 @@ public class MetricUtil {
                 .update(duration, TimeUnit.MILLISECONDS);
     }
 
-    public Timer.Context startTimer(Class cls, String meterName) {
-        String name = metrics.name(cls, meterName + ".timer");
-        return metrics.timer(name).time();
+    public void registerTimeTaken(Class cls, String meterName, long duration) {
+        registerTimeTakenOperation(cls, meterName, duration);
+    }
+
+    private void registerTimeTakenOperation(Class cls,String meterName, long duration) {
+        String name = metrics.name(cls, meterName);
+        metrics.timer(name).update(duration, TimeUnit.MILLISECONDS);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 

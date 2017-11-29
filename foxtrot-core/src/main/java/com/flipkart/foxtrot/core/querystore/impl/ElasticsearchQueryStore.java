@@ -31,6 +31,7 @@ import com.flipkart.foxtrot.core.parsers.ElasticsearchMappingParser;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import com.flipkart.foxtrot.core.util.MetricUtil;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -96,7 +97,6 @@ public class ElasticsearchQueryStore implements QueryStore {
     @Timed
     public void save(String table, Document document) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
-        Timer.Context timer = null;
         try {
             if (!tableMetadataManager.exists(table)) {
                 throw FoxtrotExceptions.createBadRequestException(table,
@@ -108,7 +108,9 @@ public class ElasticsearchQueryStore implements QueryStore {
             final Table tableMeta = tableMetadataManager.get(table);
             final Document translatedDocument = dataStore.save(tableMeta, document);
             long timestamp = translatedDocument.getTimestamp();
-            timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "save");
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.start();
             connection.getClient()
                     .prepareIndex()
                     .setIndex(ElasticsearchUtils.getCurrentIndex(table, timestamp))
@@ -119,12 +121,11 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                     .execute()
                     .get(2, TimeUnit.SECONDS);
+            stopwatch.stop();
+            MetricUtil.getInstance().registerTimeTaken(ElasticsearchQueryStore.class, "save", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw FoxtrotExceptions.createExecutionException(table, e);
-        } finally {
-            if (null != timer) {
-                timer.stop();
-            }
         }
     }
 
@@ -132,7 +133,6 @@ public class ElasticsearchQueryStore implements QueryStore {
     @Timed
     public void save(String table, List<Document> documents) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
-        Timer.Context timer = null;
         try {
             if (!tableMetadataManager.exists(table)) {
                 throw FoxtrotExceptions.createBadRequestException(table,
@@ -146,8 +146,6 @@ public class ElasticsearchQueryStore implements QueryStore {
             BulkRequestBuilder bulkRequestBuilder = connection.getClient().prepareBulk();
 
             DateTime dateTime = new DateTime().plusDays(1);
-
-            timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "saveBulk");
 
             for (Document document : translatedDocuments) {
                 long timestamp = document.getTimestamp();
@@ -164,10 +162,16 @@ public class ElasticsearchQueryStore implements QueryStore {
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0) {
+
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.start();
                 BulkResponse responses = bulkRequestBuilder
                         .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                         .execute()
                         .get(10, TimeUnit.SECONDS);
+                stopwatch.stop();
+                MetricUtil.getInstance().registerTimeTaken(ElasticsearchQueryStore.class, "saveBulk", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
                 for (int i = 0; i < responses.getItems().length; i++) {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     if (itemResponse.isFailed()) {
@@ -181,10 +185,6 @@ public class ElasticsearchQueryStore implements QueryStore {
             throw FoxtrotExceptions.createBadRequestException(table, e);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw FoxtrotExceptions.createExecutionException(table, e);
-        } finally {
-            if (null != timer) {
-                timer.stop();
-            }
         }
     }
 
@@ -199,7 +199,9 @@ public class ElasticsearchQueryStore implements QueryStore {
         }
         fxTable = tableMetadataManager.get(table);
         String lookupKey;
-        Timer.Context timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "get");
+
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.start();
         SearchResponse searchResponse = connection.getClient()
                 .prepareSearch(ElasticsearchUtils.getIndices(table))
                 .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
@@ -208,6 +210,9 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .setSize(1)
                 .execute()
                 .actionGet();
+        stopwatch.stop();
+        MetricUtil.getInstance().registerTimeTaken(ElasticsearchQueryStore.class, "get", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
         if (searchResponse.getHits().totalHits() == 0) {
             logger.warn("Going into compatibility mode, looks using passed in ID as the data store id: {}", id);
             lookupKey = id;
@@ -215,7 +220,6 @@ public class ElasticsearchQueryStore implements QueryStore {
             lookupKey = searchResponse.getHits().getHits()[0].getId();
             logger.debug("Translated lookup key for {} is {}.", id, lookupKey);
         }
-        timer.stop();
         return dataStore.get(fxTable, lookupKey);
     }
 
@@ -232,12 +236,13 @@ public class ElasticsearchQueryStore implements QueryStore {
             throw FoxtrotExceptions.createBadRequestException(table,
                     String.format("unknown_table table:%s", table));
         }
-        Timer.Context timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "getAll");
         Map<String, String> rowKeys = Maps.newLinkedHashMap();
         for (String id : ids) {
             rowKeys.put(id, id);
         }
         if (!bypassMetalookup) {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.start();
             SearchResponse response = connection.getClient().prepareSearch(ElasticsearchUtils.getIndices(table))
                     .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setQuery(boolQuery().filter(termsQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, ids.toArray(new String[ids.size()]))))
@@ -246,12 +251,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setSize(ids.size())
                     .execute()
                     .actionGet();
+            stopwatch.stop();
+            MetricUtil.getInstance().registerTimeTaken(ElasticsearchQueryStore.class, "getAll", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
             for (SearchHit hit : response.getHits()) {
                 final String id = hit.getFields().get(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME).getValue().toString();
                 rowKeys.put(id, hit.getId());
             }
         }
-        timer.stop();
         logger.info("Get row keys: {}", rowKeys.size());
         return dataStore.getAll(tableMetadataManager.get(table), ImmutableList.copyOf(rowKeys.values()));
     }

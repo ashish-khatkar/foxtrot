@@ -54,6 +54,8 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
@@ -89,6 +91,10 @@ public class FoxtrotServer extends Application<FoxtrotServerConfiguration> {
 
     @Override
     public void run(FoxtrotServerConfiguration configuration, Environment environment) throws Exception {
+
+        Logger logger = LoggerFactory.getLogger(FoxtrotServer.class.getSimpleName());
+
+        logger.info("New code added : in run function");
 
         ExecutorService executorService = environment.lifecycle().executorService("query-executor-%s")
                 .minThreads(20).maxThreads(30).keepAliveTime(Duration.seconds(30))
