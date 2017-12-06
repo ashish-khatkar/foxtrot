@@ -34,7 +34,8 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+//import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.percentiles.Percentiles;
 import org.elasticsearch.search.aggregations.metrics.stats.extended.InternalExtendedStats;
 import org.joda.time.DateTime;
@@ -155,13 +156,16 @@ public class StatsTrendAction extends Action<StatsTrendRequest> {
             return dateHistogramBuilder;
         }
 
-        TermsBuilder rootBuilder = null;
-        TermsBuilder termsBuilder = null;
+//        TermsBuilder rootBuilder = null;
+//        TermsBuilder termsBuilder = null;
+        TermsAggregationBuilder rootBuilder = null;
+        TermsAggregationBuilder termsBuilder = null;
         for (String field : getParameter().getNesting()) {
             if (null == termsBuilder) {
                 termsBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
             } else {
-                TermsBuilder tempBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
+//                TermsBuilder tempBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
+                TermsAggregationBuilder tempBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
                 termsBuilder.subAggregation(tempBuilder);
                 termsBuilder = tempBuilder;
             }

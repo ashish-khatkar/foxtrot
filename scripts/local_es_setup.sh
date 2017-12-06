@@ -16,7 +16,6 @@ curl -XPUT ${1}:9200/_template/template_foxtrot_mappings -d '
         "document" : {
             "_source" : { "enabled" : false },
             "_all" : { "enabled" : false },
-            "_timestamp" : { "enabled" : true },
 
             "dynamic_templates" : [
                 {

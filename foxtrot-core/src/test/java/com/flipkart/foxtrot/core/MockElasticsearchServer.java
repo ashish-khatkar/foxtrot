@@ -21,12 +21,13 @@ import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
+import org.elasticsearch.node.NodeValidationException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+//import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 /**
  * Created by rishabh.goyal on 16/04/14.
@@ -36,17 +37,18 @@ public class MockElasticsearchServer {
     private final Node node;
     private String DATA_DIRECTORY = UUID.randomUUID().toString() + "/elasticsearch-data";
 
-    public MockElasticsearchServer(String directory) {
+    public MockElasticsearchServer(String directory) throws NodeValidationException {
         this.DATA_DIRECTORY = UUID.randomUUID().toString() + "/" + directory;
         Settings settings = Settings.builder()
                 .put("http.enabled", "false")
                 .put("path.home", "target/" + DATA_DIRECTORY)
                 .build();
 
-        node = nodeBuilder()
-                .local(true)
-                .settings(settings)
-                .node();
+        node = new Node(settings).start();
+//                nodeBuilder()
+//                .local(true)
+//                .settings(settings)
+//                .node();
     }
 
     public void refresh(final String index) {
