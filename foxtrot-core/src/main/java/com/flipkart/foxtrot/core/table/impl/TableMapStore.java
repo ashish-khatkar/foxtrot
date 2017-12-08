@@ -24,13 +24,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
 import com.hazelcast.core.MapStoreFactory;
-//import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.common.unit.TimeValue;
@@ -39,7 +37,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,12 +90,9 @@ public class TableMapStore implements MapStore<String, Table> {
             elasticsearchConnection.getClient().prepareIndex()
                     .setIndex(TABLE_META_INDEX)
                     .setType(TABLE_META_TYPE)
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
-//                    .setSource(objectMapper.writeValueAsString(value))
                     .setSource(objectMapper.writeValueAsString(value), XContentType.JSON)
                     .setId(key)
-//                    .setRefresh(true)
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                     .execute()
                     .actionGet();
@@ -119,9 +113,7 @@ public class TableMapStore implements MapStore<String, Table> {
         logger.info("Store all called for multiple values");
         BulkRequestBuilder bulkRequestBuilder = elasticsearchConnection.getClient()
                 .prepareBulk()
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setRefresh(true);
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         for (Map.Entry<String, Table> mapEntry : map.entrySet()) {
             try {
@@ -142,9 +134,7 @@ public class TableMapStore implements MapStore<String, Table> {
     public void delete(String key) {
         logger.info("Delete called for value: " + key);
         elasticsearchConnection.getClient().prepareDelete()
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setRefresh(true)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
@@ -159,9 +149,7 @@ public class TableMapStore implements MapStore<String, Table> {
         logger.info(String.format("Delete all called for multiple values: %s", keys));
         BulkRequestBuilder bulRequestBuilder = elasticsearchConnection.getClient()
                 .prepareBulk()
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setRefresh(true);
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         for (String key : keys) {
             bulRequestBuilder.add(elasticsearchConnection.getClient()
@@ -222,7 +210,6 @@ public class TableMapStore implements MapStore<String, Table> {
                 .prepareSearch(TABLE_META_INDEX)
                 .setTypes(TABLE_META_TYPE)
                 .setQuery(QueryBuilders.matchAllQuery())
-//                .setSearchType(SearchType.SCAN)
                 .setScroll(new TimeValue(30, TimeUnit.SECONDS))
                 /**
                  * This achieves the same result as setSearchType(SearchType.SCAN)
@@ -242,7 +229,6 @@ public class TableMapStore implements MapStore<String, Table> {
             for (SearchHit hit : hits) {
                 ids.add(hit.getId());
             }
-//            if (0 == response.getHits().hits().length) {
             if (0 == response.getHits().getHits().length) {
                 break;
             }

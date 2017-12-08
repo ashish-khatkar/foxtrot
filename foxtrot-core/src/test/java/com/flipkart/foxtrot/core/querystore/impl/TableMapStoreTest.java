@@ -22,7 +22,6 @@ import com.flipkart.foxtrot.core.table.impl.TableMapStore;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-//import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.get.MultiGetItemResponse;
@@ -321,12 +320,9 @@ public class TableMapStoreTest {
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setSource(mapper.writeValueAsString(table), XContentType.JSON)
-//                .setSource(mapper.writeValueAsString(table))
                 .setId(table.getName())
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                .setRefresh(true)
                 .execute()
                 .actionGet();
 
@@ -352,12 +348,9 @@ public class TableMapStoreTest {
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setSource("{ \"test\" : \"test\"}", XContentType.JSON)
-//                .setSource("{ \"test\" : \"test\"}")
                 .setId(TEST_TABLE)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                .setRefresh(true)
                 .execute()
                 .actionGet();
         tableMapStore.load(TEST_TABLE);
@@ -376,12 +369,9 @@ public class TableMapStoreTest {
                     .setIndex(TABLE_META_INDEX)
                     .setType(TABLE_META_TYPE)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setSource(mapper.writeValueAsString(table), XContentType.JSON)
-//                    .setSource(mapper.writeValueAsString(table))
                     .setId(table.getName())
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                    .setRefresh(true)
                     .execute()
                     .actionGet();
         }
@@ -405,12 +395,9 @@ public class TableMapStoreTest {
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
                 .setWaitForActiveShards(ActiveShardCount.ALL)
-//                .setConsistencyLevel(WriteConsistencyLevel.ALL)
                 .setSource("{ \"test\" : \"test\"}", XContentType.JSON)
-//                .setSource("{ \"test\" : \"test\"}")
                 .setId(TEST_TABLE)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                .setRefresh(true)
                 .execute()
                 .actionGet();
         tableMapStore.loadAll(Arrays.asList(TEST_TABLE));
@@ -429,12 +416,9 @@ public class TableMapStoreTest {
                     .setIndex(TABLE_META_INDEX)
                     .setType(TABLE_META_TYPE)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setSource(mapper.writeValueAsString(table), XContentType.JSON)
-//                    .setSource(mapper.writeValueAsString(table))
                     .setId(table.getName())
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                    .setRefresh(true)
                     .execute()
                     .actionGet();
         }

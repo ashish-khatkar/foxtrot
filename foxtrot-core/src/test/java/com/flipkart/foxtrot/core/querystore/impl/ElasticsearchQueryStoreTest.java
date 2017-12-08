@@ -28,7 +28,6 @@ import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.sematext.hbase.ds.RowKeyDistributorByHashPrefix;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
@@ -96,7 +95,6 @@ public class ElasticsearchQueryStoreTest {
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         originalDocument.getId())
                 .setStoredFields("_timestamp")
-//                .setFields("_timestamp")
                 .execute()
                 .actionGet();
         assertTrue("Id should exist in ES", getResponse.isExists());
@@ -119,7 +117,6 @@ public class ElasticsearchQueryStoreTest {
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         translatedDocument.getId())
                 .setStoredFields("_timestamp")
-//                .setFields("_timestamp")
                 .execute()
                 .actionGet();
         assertTrue("Id should exist in ES", getResponse.isExists());
@@ -164,7 +161,6 @@ public class ElasticsearchQueryStoreTest {
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .setStoredFields("_timestamp")
-//                    .setFields("_timestamp")
                     .execute()
                     .actionGet();
             assertTrue("Id should exist in ES", getResponse.isExists());
@@ -199,7 +195,6 @@ public class ElasticsearchQueryStoreTest {
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .setStoredFields("_timestamp")
-//                    .setFields("_timestamp")
                     .execute()
                     .actionGet();
 
@@ -213,7 +208,6 @@ public class ElasticsearchQueryStoreTest {
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .setStoredFields("_timestamp")
-//                    .setFields("_timestamp")
                     .execute()
                     .actionGet();
 

@@ -112,12 +112,6 @@
             <artifactId>transport</artifactId>
             <version>5.5.1</version>
         </dependency>
-        <!--&lt;!&ndash; Netty dependency &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>io.netty</groupId>-->
-            <!--<artifactId>netty-all</artifactId>-->
-            <!--<version>4.0.4.Final</version>-->
-        <!--</dependency>-->
 
         <!--json-path-->
         <dependency>

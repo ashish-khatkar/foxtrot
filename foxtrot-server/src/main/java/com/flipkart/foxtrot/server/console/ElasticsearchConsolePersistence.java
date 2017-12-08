@@ -18,10 +18,8 @@ package com.flipkart.foxtrot.server.console;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.querystore.impl.ElasticsearchConnection;
-//import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.common.unit.TimeValue;
@@ -62,11 +60,8 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
                     .setIndex(INDEX)
                     .setType(TYPE)
                     .setId(console.getId())
-//                    .setSource(mapper.writeValueAsBytes(console))
                     .setSource(mapper.writeValueAsBytes(console), XContentType.JSON)
-//                    .setRefresh(true)
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
                     .execute()
                     .get();
@@ -103,7 +98,6 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
                 .addSort(fieldSort("name").order(SortOrder.DESC))
                 .setScroll(new TimeValue(60000))
                 .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-//                .setSearchType(SearchType.SCAN)
                 .execute()
                 .actionGet();
         try {
@@ -132,9 +126,7 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
         try {
             connection.getClient()
                     .prepareDelete()
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
-//                    .setRefresh(true)
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                     .setIndex(INDEX)
                     .setType(TYPE)
@@ -155,11 +147,8 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
                     .setIndex(INDEX_V2)
                     .setType(TYPE)
                     .setId(console.getId())
-//                    .setSource(mapper.writeValueAsBytes(console))
                     .setSource(mapper.writeValueAsBytes(console), XContentType.JSON)
-//                    .setRefresh(true)
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
                     .execute()
                     .get();
@@ -196,7 +185,6 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
                 .setQuery(boolQuery().must(matchAllQuery()))
                 .addSort(fieldSort("name").order(SortOrder.DESC))
                 .setScroll(new TimeValue(60000))
-//                .setSearchType(SearchType.SCAN)
                 .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
                 .execute()
                 .actionGet();
@@ -226,9 +214,7 @@ public class ElasticsearchConsolePersistence implements ConsolePersistence {
         try {
             connection.getClient()
                     .prepareDelete()
-//                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
                     .setWaitForActiveShards(ActiveShardCount.ALL)
-//                    .setRefresh(true)
                     .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                     .setIndex(INDEX_V2)
                     .setType(TYPE)

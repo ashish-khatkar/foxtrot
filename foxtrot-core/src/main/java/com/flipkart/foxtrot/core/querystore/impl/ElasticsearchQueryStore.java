@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-//import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
@@ -112,10 +111,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setType(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setId(translatedDocument.getId())
                     .setTimestamp(Long.toString(timestamp))
-//                    .setSource(convert(translatedDocument))
                     .setSource(convert(translatedDocument), XContentType.JSON)
                     .setWaitForActiveShards(ActiveShardCount.DEFAULT)
-//                    .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                     .execute()
                     .get(2, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -152,14 +149,12 @@ public class ElasticsearchQueryStore implements QueryStore {
                         .type(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                         .id(document.getId())
                         .timestamp(Long.toString(timestamp))
-//                        .source(convert(document))
                         .source(convert(document), XContentType.JSON);
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0) {
                 BulkResponse responses = bulkRequestBuilder
                         .setWaitForActiveShards(ActiveShardCount.DEFAULT)
-//                        .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                         .execute()
                         .get(10, TimeUnit.SECONDS);
                 for (int i = 0; i < responses.getItems().length; i++) {
@@ -201,7 +196,6 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .setSize(1)
                 .execute()
                 .actionGet();
-//        if (searchResponse.getHits().totalHits() == 0) {
         if (searchResponse.getHits().getTotalHits() == 0) {
             logger.warn("Going into compatibility mode, looks using passed in ID as the data store id: {}", id);
             lookupKey = id;
@@ -235,7 +229,6 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setQuery(boolQuery().filter(termsQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, ids.toArray(new String[ids.size()]))))
                     .setFetchSource(false)
                     .addStoredField(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME)
-//                    .addField(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME) // Used for compatibility
                     .setSize(ids.size())
                     .execute()
                     .actionGet();

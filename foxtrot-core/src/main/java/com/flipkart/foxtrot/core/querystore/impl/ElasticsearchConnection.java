@@ -43,15 +43,12 @@ public class ElasticsearchConnection implements Managed {
     @Override
     public void start() throws Exception {
         logger.info("Starting Elasticsearch Client");
-//        Settings settings = Settings.settingsBuilder()
-//                .put("cluster.name", config.getCluster()).build();
         Settings settings = Settings.builder()
                 .put("cluster.name", config.getCluster())
                 .put("transport.type", "netty3")
                 .put("http.type", "netty3")
                 .build();
 
-//        TransportClient esClient = TransportClient.builder().settings(settings).build();
         TransportClient esClient = new PreBuiltTransportClient(settings);
         for (String host : config.getHosts()) {
             String tokenizedHosts[] = host.split(",");

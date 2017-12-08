@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-//import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 /**
  * Created by rishabh.goyal on 16/04/14.
@@ -45,10 +44,6 @@ public class MockElasticsearchServer {
                 .build();
 
         node = new Node(settings).start();
-//                nodeBuilder()
-//                .local(true)
-//                .settings(settings)
-//                .node();
     }
 
     public void refresh(final String index) {
