@@ -75,7 +75,7 @@ public class FoxtrotTableManagerTest {
         doNothing().when(dataStore).initializeTable(any(Table.class));
         doNothing().when(queryStore).initializeTable(any(String.class));
         try {
-            tableManager.save(null);
+            tableManager.save((Table)null);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.INVALID_REQUEST, e.getCode());

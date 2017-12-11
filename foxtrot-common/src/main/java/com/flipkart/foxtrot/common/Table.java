@@ -22,6 +22,8 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -42,6 +44,15 @@ public class Table implements Serializable {
 
     private boolean seggregatedBackend = false;
 
+    @NotNull
+    private IndexDetails defaultIndexDetails;
+
+    /**
+     * This map stores index rollover related settings corresponding to configName
+     * If foxtrot index settings corresponding to configName are not present in the map defaultIndexDetails will be used
+     */
+    private Map<String, IndexDetails> indexDetails;
+
     public Table() {
     }
 
@@ -54,6 +65,19 @@ public class Table implements Serializable {
         this.name = name;
         this.ttl = ttl;
         this.seggregatedBackend = seggregatedBackend;
+    }
+
+    public Table(String name, int ttl, IndexDetails defaultIndexDetails) {
+        this.name = name;
+        this.ttl = ttl;
+        this.defaultIndexDetails = defaultIndexDetails;
+    }
+
+    public Table(String name, int ttl, boolean seggregatedBackend, IndexDetails defaultIndexDetails) {
+        this.name = name;
+        this.ttl = ttl;
+        this.seggregatedBackend = seggregatedBackend;
+        this.defaultIndexDetails = defaultIndexDetails;
     }
 
     public String getName() {
@@ -72,6 +96,21 @@ public class Table implements Serializable {
         this.ttl = ttl;
     }
 
+    public IndexDetails getDefaultIndexDetails() {
+        return defaultIndexDetails;
+    }
+
+    public void setDefaultIndexDetails(IndexDetails defaultIndexDetails) {
+        this.defaultIndexDetails = defaultIndexDetails;
+    }
+
+    public Map<String, IndexDetails> getIndexDetails() {
+        return indexDetails;
+    }
+
+    public void setIndexDetails(Map<String, IndexDetails> indexDetails) {
+        this.indexDetails = indexDetails;
+    }
 
     @Override
     public String toString() {

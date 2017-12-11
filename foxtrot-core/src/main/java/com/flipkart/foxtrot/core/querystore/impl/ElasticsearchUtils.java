@@ -16,10 +16,12 @@
 package com.flipkart.foxtrot.core.querystore.impl;
 
 import com.flipkart.foxtrot.common.ActionRequest;
+import com.flipkart.foxtrot.common.IndexDetails;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.core.common.PeriodSelector;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -51,6 +53,8 @@ public class ElasticsearchUtils {
     public static final String TABLENAME_POSTFIX = "table";
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
+    public static final String HEADER = "header";
+    public static final String CONFIG_NAME = "configName";
 
     public static void setTableNamePrefix(ElasticsearchConfig config) {
         ElasticsearchUtils.TABLENAME_PREFIX = config.getTableNamePrefix();
@@ -69,6 +73,11 @@ public class ElasticsearchUtils {
         }*/
         return String.format("%s-%s-%s-*",
                 ElasticsearchUtils.TABLENAME_PREFIX, table, ElasticsearchUtils.TABLENAME_POSTFIX);
+    }
+
+    public static String getIndices(final String table, final String configName) {
+        return String.format("%s-%s-%s-*",
+                ElasticsearchUtils.TABLENAME_PREFIX, table, configName, ElasticsearchUtils.TABLENAME_POSTFIX);
     }
 
     public static String[] getIndices(final String table, final ActionRequest request) throws Exception {
@@ -98,6 +107,30 @@ public class ElasticsearchUtils {
         String datePostfix = FORMATTER.print(timestamp);
         return String.format("%s-%s-%s-%s", ElasticsearchUtils.TABLENAME_PREFIX, table,
                 ElasticsearchUtils.TABLENAME_POSTFIX, datePostfix);
+    }
+
+    /**
+     * This function returns the index to which the document needs to be put.
+     * Using the index split specified in index details it decides to which index document need to be stored.
+     * For ex : lets say index split is 4 hours and current time acc to timestamp is 08-12-2016 16:20
+     * than index created will be foxtrot-{tableName}-{configName}-table-08-12-2016-4, last 4 comes from the split.
+     * [0-3] will go to bucket 0
+     * [4-7] will go to bucket 1
+     * [8-11] will go to bucket 2
+     * and so on
+     * @param table : Table name
+     * @param configName : Config name
+     * @param timestamp : Timestamp of the document
+     * @param indexDetails : Index details specified for given table and config
+     * @return indexName in which document needs to be stored
+     */
+    public static String getCurrentIndex(final String table, final String configName, long timestamp, IndexDetails indexDetails) {
+        String dateFromTimestamp = DateTimeFormat.forPattern(indexDetails.getIndexDateFormat()).print(timestamp);
+        int hour = Integer.parseInt(DateTimeFormat.forPattern(indexDetails.getIndexHourFormat()).print(timestamp));
+        int indexHour = hour / indexDetails.getIndexSplitInHours();
+        String indexPostFix = dateFromTimestamp + "-" + indexHour;
+        return String.format("%s-%s-%s-%s-%s", ElasticsearchUtils.TABLENAME_PREFIX, table,
+                configName, ElasticsearchUtils.TABLENAME_POSTFIX, indexPostFix);
     }
 
     public static PutIndexTemplateRequest getClusterTemplateMapping() {

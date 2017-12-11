@@ -62,6 +62,7 @@ public class DocumentResource {
         return Response.created(URI.create("/" + table)).build();
     }
 
+    @Deprecated
     @GET
     @Path("/{id}")
     @Timed
@@ -69,6 +70,17 @@ public class DocumentResource {
             throws FoxtrotException {
         return Response.ok(queryStore.get(table, id)).build();
     }
+
+    @GET
+    @Path("/{configName}/{id}")
+    @Timed
+    public Response getDocument(@PathParam("table") final String table,
+                                @PathParam("configName") @NotNull final String configName,
+                                @PathParam("id") @NotNull final String id)
+            throws FoxtrotException {
+        return Response.ok(queryStore.get(table, configName, id)).build();
+    }
+
 
     @GET
     @Timed

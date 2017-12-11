@@ -18,10 +18,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.flipkart.foxtrot.common.Document;
-import com.flipkart.foxtrot.common.FieldTypeMapping;
-import com.flipkart.foxtrot.common.Table;
-import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.*;
+import com.flipkart.foxtrot.common.util.CollectionUtils;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
@@ -32,11 +30,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -44,8 +47,9 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.search.SearchHit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -68,6 +72,7 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 public class ElasticsearchQueryStore implements QueryStore {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchQueryStore.class.getSimpleName());
+    private static final Gson gson = new Gson();
 
     private final ElasticsearchConnection connection;
     private final DataStore dataStore;
@@ -90,6 +95,132 @@ public class ElasticsearchQueryStore implements QueryStore {
         // Nothing needs to be done here since indexes are created at runtime in elasticsearch
     }
 
+    /**
+     * This function returns the PutIndexTemplateRequest for a given table and given config.
+     * For ex : if table name is bro and config name is state_transition, template created will be :
+     * template_foxtrot_bro_state_transition_mappings and this mapping will be applied to all indices with names of type
+     * foxtrot-bro-state_transition-*
+     * @param table : Table name
+     * @param indexTemplate : index template containing config name, settings and mappings that need to be put in template
+     * @return : PutIndexTemplateRequest object
+     * @throws FoxtrotException
+     */
+    private PutIndexTemplateRequest getCETableTemplateMapping(String table, IndexTemplate indexTemplate) throws FoxtrotException {
+        Object settings = indexTemplate.getSetting();
+        Settings templateSettings = Settings.builder()
+                .put(settings)
+                .build();
+
+        String mappings = gson.toJson(indexTemplate.getMapping());
+        XContentBuilder templateMappings;
+        try {
+            XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+                    .createParser(NamedXContentRegistry.EMPTY, mappings);
+
+            templateMappings = XContentFactory.jsonBuilder().copyCurrentStructure(parser);
+        } catch (Exception e) {
+            logger.error("Exception thrown in putIndexTemplateRequest : ", e.getMessage());
+            throw FoxtrotExceptions.createBadRequestException(
+                    table,
+                    String.format("Template initialization failed for config - %s", indexTemplate.getConfigName())
+            );
+        }
+
+        return new PutIndexTemplateRequest()
+                .name(String.format("template_foxtrot_%s_%s_mappings", table, indexTemplate.getConfigName()))
+                .template(String.format("foxtrot-%s-%s-*", table, indexTemplate.getConfigName()))
+                .settings(templateSettings)
+                .mapping(ElasticsearchUtils.DOCUMENT_TYPE_NAME, templateMappings);
+    }
+
+    /**
+     * This function puts templates for all configs for a given table so that indices can use those templates while indexing
+     * @param tableV2 : TableV2 object containing all information related to templates for config and table information
+     * @throws FoxtrotException
+     */
+    @Override
+    @Timed
+    public void initializeTable(TableV2 tableV2) throws FoxtrotException {
+        logger.info(String.format("Starting template initialization for table : %s", tableV2.getTable().getName()));
+
+        List<String> failedConfigs = new ArrayList<>();
+        Map<String, IndexDetails> indexDetails = new HashMap<>();
+        String table = tableV2.getTable().getName();
+        for (IndexTemplate tableTemplate : tableV2.getTableTemplates()) {
+            logger.info(
+                    String.format(
+                            "Starting template initialization for table : %s with config : %s",
+                            tableV2.getTable().getName(),
+                            tableTemplate.getConfigName()
+                    )
+            );
+            /**
+             * Since elasticsearch only allows lowercase index and template names.
+             */
+            tableTemplate.setConfigName(tableTemplate.getConfigName().trim().toLowerCase());
+
+            try {
+                PutIndexTemplateRequest putIndexTemplateRequest = getCETableTemplateMapping(table, tableTemplate);
+                PutIndexTemplateResponse response = connection.getClient()
+                        .admin()
+                        .indices()
+                        .putTemplate(putIndexTemplateRequest)
+                        .actionGet();
+                if (!response.isAcknowledged()) {
+                    failedConfigs.add(tableTemplate.getConfigName());
+                }
+            } catch (FoxtrotException e) {
+                failedConfigs.add(tableTemplate.getConfigName());
+            }
+
+            if (null != tableTemplate.getFoxtrotIndexDetails()) {
+                indexDetails.put(tableTemplate.getConfigName(), tableTemplate.getFoxtrotIndexDetails());
+            }
+        }
+
+        if (!CollectionUtils.isNullOrEmpty(failedConfigs)) {
+            throw FoxtrotExceptions.createTableInitializationException(
+                    tableV2.getTable(),
+                    String.format(
+                            "Template initialization failed for table - %s with configs : %s",
+                            tableV2.getTable().getName(),
+                            failedConfigs.toString()
+                    )
+            );
+        }
+
+        tableV2.getTable().setIndexDetails(indexDetails);
+
+        logger.info(String.format("Template initialization finished for table : %s", tableV2.getTable().getName()));
+    }
+
+    /**
+     * Helper function to get configName from document that need to be stored
+     * @param document
+     * @return
+     */
+    private String getConfigNameFromDocument(Document document) {
+        JsonNode dataNode = document.getData();
+        return dataNode.get(ElasticsearchUtils.HEADER)
+                .get(ElasticsearchUtils.CONFIG_NAME)
+                .asText().trim().toLowerCase();
+    }
+
+    /**
+     * Helper function to get indexDetails for a given config
+     * @param table
+     * @param configName
+     * @return
+     */
+    private IndexDetails getConfigIndexDetails(Table table, String configName) {
+        for (Map.Entry<String, IndexDetails> indexDetailsEntry : table.getIndexDetails().entrySet()) {
+            if (StringUtils.equalsIgnoreCase(indexDetailsEntry.getKey(), configName)) {
+                return indexDetailsEntry.getValue();
+            }
+        }
+        return table.getDefaultIndexDetails();
+    }
+
     @Override
     @Timed
     public void save(String table, Document document) throws FoxtrotException {
@@ -105,9 +236,11 @@ public class ElasticsearchQueryStore implements QueryStore {
             final Table tableMeta = tableMetadataManager.get(table);
             final Document translatedDocument = dataStore.save(tableMeta, document);
             long timestamp = translatedDocument.getTimestamp();
+            String configName = getConfigNameFromDocument(document);
+            IndexDetails configIndexDetails = getConfigIndexDetails(tableMeta, configName);
             connection.getClient()
                     .prepareIndex()
-                    .setIndex(ElasticsearchUtils.getCurrentIndex(table, timestamp))
+                    .setIndex(ElasticsearchUtils.getCurrentIndex(table, configName, timestamp, configIndexDetails))
                     .setType(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setId(translatedDocument.getId())
                     .setTimestamp(Long.toString(timestamp))
@@ -143,7 +276,9 @@ public class ElasticsearchQueryStore implements QueryStore {
                 if (dateTime.minus(timestamp).getMillis() < 0) {
                     continue;
                 }
-                final String index = ElasticsearchUtils.getCurrentIndex(table, timestamp);
+                String configName = getConfigNameFromDocument(document);
+                IndexDetails configIndexDetails = getConfigIndexDetails(tableMeta, configName);
+                final String index = ElasticsearchUtils.getCurrentIndex(table, configName, timestamp, configIndexDetails);
                 IndexRequest indexRequest = new IndexRequest()
                         .index(index)
                         .type(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
@@ -207,6 +342,39 @@ public class ElasticsearchQueryStore implements QueryStore {
     }
 
     @Override
+    @Timed
+    public Document get(String table, String configName, String id) throws FoxtrotException {
+        table = ElasticsearchUtils.getValidTableName(table);
+        Table fxTable;
+        if (!tableMetadataManager.exists(table)) {
+            throw FoxtrotExceptions.createBadRequestException(table,
+                    String.format("unknown_table table:%s", table));
+        }
+        fxTable = tableMetadataManager.get(table);
+        String lookupKey;
+        /**
+         * Need to see what function should be used to replace setNoFields
+         * setNoFields
+         */
+        SearchResponse searchResponse = connection.getClient()
+                .prepareSearch(ElasticsearchUtils.getIndices(table, configName))
+                .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
+                .setQuery(boolQuery().filter(termQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, id)))
+//                .setNoFields()
+                .setSize(1)
+                .execute()
+                .actionGet();
+        if (searchResponse.getHits().getTotalHits() == 0) {
+            logger.warn("Going into compatibility mode, looks using passed in ID as the data store id: {}", id);
+            lookupKey = id;
+        } else {
+            lookupKey = searchResponse.getHits().getHits()[0].getId();
+            logger.debug("Translated lookup key for {} is {}.", id, lookupKey);
+        }
+        return dataStore.get(fxTable, lookupKey);
+    }
+
+    @Override
     public List<Document> getAll(String table, List<String> ids) throws FoxtrotException {
         return getAll(table, ids, false);
     }
@@ -239,6 +407,12 @@ public class ElasticsearchQueryStore implements QueryStore {
         }
         logger.info("Get row keys: {}", rowKeys.size());
         return dataStore.getAll(tableMetadataManager.get(table), ImmutableList.copyOf(rowKeys.values()));
+    }
+
+    @Override
+    @Timed
+    public List<Document> getAll(String table, String configName, List<String> ids) throws FoxtrotException {
+        return null;
     }
 
     @Override

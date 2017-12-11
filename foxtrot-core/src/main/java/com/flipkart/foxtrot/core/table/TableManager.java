@@ -1,5 +1,6 @@
 package com.flipkart.foxtrot.core.table;
 
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 
@@ -19,5 +20,7 @@ public interface TableManager {
     void update(Table table) throws FoxtrotException;
 
     void delete(String name) throws FoxtrotException;
+
+    void save(TableV2 tableV2) throws FoxtrotException;
 
 }

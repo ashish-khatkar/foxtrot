@@ -15,6 +15,7 @@
  */
 package com.flipkart.foxtrot.core.querystore;
 
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.TableFieldMapping;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
@@ -35,15 +36,21 @@ public interface QueryStore {
 
     void initializeTable(final String table) throws FoxtrotException;
 
+    void initializeTable(final TableV2 tableV2) throws FoxtrotException;
+
     void save(final String table, final Document document) throws FoxtrotException;
 
     void save(final String table, final List<Document> documents) throws FoxtrotException;
 
     Document get(final String table, final String id) throws FoxtrotException;
 
+    Document get(final String table, final String configName, final String id) throws FoxtrotException;
+
     List<Document> getAll(final String table, final List<String> ids) throws FoxtrotException;
 
     List<Document> getAll(final String table, final List<String> ids, boolean bypassMetaLookup) throws FoxtrotException;
+
+    List<Document> getAll(final String table, final String configName, final List<String> ids) throws FoxtrotException;
 
     TableFieldMapping getFieldMappings(final String table) throws FoxtrotException;
 

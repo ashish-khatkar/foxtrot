@@ -1,5 +1,6 @@
 package com.flipkart.foxtrot.core.table.impl;
 
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
@@ -36,6 +37,17 @@ public class FoxtrotTableManager implements TableManager {
         queryStore.initializeTable(table.getName());
         dataStore.initializeTable(table);
         metadataManager.save(table);
+    }
+
+    @Override
+    public void save(TableV2 tableV2) throws  FoxtrotException {
+        validateTableParams(tableV2.getTable());
+        if (metadataManager.exists(tableV2.getTable().getName())) {
+            throw FoxtrotExceptions.createTableExistsException(tableV2.getTable().getName());
+        }
+        queryStore.initializeTable(tableV2);
+        dataStore.initializeTable(tableV2.getTable());
+        metadataManager.save(tableV2.getTable());
     }
 
     @Override
