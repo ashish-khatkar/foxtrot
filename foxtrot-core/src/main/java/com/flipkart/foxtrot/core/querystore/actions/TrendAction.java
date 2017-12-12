@@ -173,7 +173,7 @@ public class TrendAction extends Action<TrendRequest> {
     @Override
     protected Filter getDefaultTimeSpan() {
         LastFilter lastFilter = new LastFilter();
-        lastFilter.setField("_timestamp");
+        lastFilter.setField("timestamp");
         lastFilter.setDuration(Duration.days(1));
         return lastFilter;
     }
@@ -189,7 +189,6 @@ public class TrendAction extends Action<TrendRequest> {
 
         return AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field))
                 .field(field)
-                .size(0)
                 .subAggregation(histogramBuilder);
     }
 

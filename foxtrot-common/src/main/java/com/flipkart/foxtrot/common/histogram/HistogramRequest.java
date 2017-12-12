@@ -32,7 +32,7 @@ public class HistogramRequest extends ActionRequest {
 
     private String table;
 
-    private String field = "_timestamp";
+    private String field = "timestamp";
 
     private String uniqueCountOn;
 
@@ -40,7 +40,7 @@ public class HistogramRequest extends ActionRequest {
 
     public HistogramRequest() {
         super(Opcodes.HISTOGRAM);
-        this.field = "_timestamp";
+        this.field = "timestamp";
         this.period = Period.minutes;
     }
 

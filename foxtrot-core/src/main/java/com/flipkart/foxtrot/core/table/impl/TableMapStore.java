@@ -203,36 +203,28 @@ public class TableMapStore implements MapStore<String, Table> {
     @Override
     public Set<String> loadAllKeys() {
         logger.info("Load all keys called");
-        /**
-         * Look at setNoFields
-         */
         SearchResponse response = elasticsearchConnection.getClient()
                 .prepareSearch(TABLE_META_INDEX)
                 .setTypes(TABLE_META_TYPE)
                 .setQuery(QueryBuilders.matchAllQuery())
                 .setScroll(new TimeValue(30, TimeUnit.SECONDS))
-                /**
-                 * This achieves the same result as setSearchType(SearchType.SCAN)
-                 * Recommended as apposed to SCAN
-                 */
                 .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-//                .setNoFields()
+                .setFetchSource(false)
                 .execute()
                 .actionGet();
+
         Set<String> ids = Sets.newHashSet();
-        while (true) {
+
+        do {
+            for(SearchHit hit : response.getHits().getHits()) {
+                ids.add(hit.getId());
+            }
             response = elasticsearchConnection.getClient().prepareSearchScroll(response.getScrollId())
                     .setScroll(new TimeValue(60000))
                     .execute()
                     .actionGet();
-            SearchHits hits = response.getHits();
-            for (SearchHit hit : hits) {
-                ids.add(hit.getId());
-            }
-            if (0 == response.getHits().getHits().length) {
-                break;
-            }
-        }
+        } while(0 != response.getHits().getHits().length);
+
         logger.info("Loaded value count: " + ids.size());
         return ids;
     }

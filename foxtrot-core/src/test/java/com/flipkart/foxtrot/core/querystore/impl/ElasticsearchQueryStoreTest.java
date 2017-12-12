@@ -94,12 +94,10 @@ public class ElasticsearchQueryStoreTest {
                 .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         originalDocument.getId())
-                .setStoredFields("_timestamp")
                 .execute()
                 .actionGet();
         assertTrue("Id should exist in ES", getResponse.isExists());
         assertEquals("Id should match requestId", originalDocument.getId(), getResponse.getId());
-        assertEquals("Timestamp should match request timestamp", originalDocument.getTimestamp(), getResponse.getField("_timestamp").getValue());
     }
 
     @Test
@@ -116,12 +114,10 @@ public class ElasticsearchQueryStoreTest {
                 .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         translatedDocument.getId())
-                .setStoredFields("_timestamp")
                 .execute()
                 .actionGet();
         assertTrue("Id should exist in ES", getResponse.isExists());
         assertEquals("Id should match requestId", translatedDocument.getId(), getResponse.getId());
-        assertEquals("Timestamp should match request timestamp", originalDocument.getTimestamp(), getResponse.getField("_timestamp").getValue());
     }
 
     @Test
@@ -160,12 +156,10 @@ public class ElasticsearchQueryStoreTest {
                     .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
-                    .setStoredFields("_timestamp")
                     .execute()
                     .actionGet();
             assertTrue("Id should exist in ES", getResponse.isExists());
             assertEquals("Id should match requestId", document.getId(), getResponse.getId());
-            assertEquals("Timestamp should match request timestamp", document.getTimestamp(), getResponse.getField("_timestamp").getValue());
         }
     }
 
@@ -194,7 +188,6 @@ public class ElasticsearchQueryStoreTest {
                     .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
-                    .setStoredFields("_timestamp")
                     .execute()
                     .actionGet();
 
@@ -207,13 +200,12 @@ public class ElasticsearchQueryStoreTest {
                     .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
-                    .setStoredFields("_timestamp")
+                    .setStoredFields("timestamp")
                     .execute()
                     .actionGet();
 
             assertTrue("Id should exist in ES", getResponse.isExists());
             assertEquals("Id should match requestId", document.getId(), getResponse.getId());
-            assertEquals("Timestamp should match request timestamp", document.getTimestamp(), getResponse.getField("_timestamp").getValue());
         }
     }
 
@@ -270,7 +262,6 @@ public class ElasticsearchQueryStoreTest {
         Document responseDocument = queryStore.get(TestUtils.TEST_TABLE_NAME, document.getId());
         assertNotNull(responseDocument);
         assertEquals(document.getId(), responseDocument.getId());
-        assertEquals("Timestamp should match request timestamp", document.getTimestamp(), responseDocument.getTimestamp());
     }
 
     @Test
@@ -289,7 +280,6 @@ public class ElasticsearchQueryStoreTest {
         Document responseDocument = queryStore.get(TestUtils.TEST_TABLE_NAME, document.getId());
         assertNotNull(responseDocument);
         assertEquals(document.getId(), responseDocument.getId());
-        assertEquals("Timestamp should match request timestamp", document.getTimestamp(), responseDocument.getTimestamp());
     }
 
     @Test
@@ -338,7 +328,6 @@ public class ElasticsearchQueryStoreTest {
             assertTrue("Requested Id should be present in response", responseIdValues.containsKey(id));
             assertNotNull(responseIdValues.get(id));
             assertEquals(id, responseIdValues.get(id).getId());
-            assertEquals("Timestamp should match request timestamp", idValues.get(id).getTimestamp(), responseIdValues.get(id).getTimestamp());
         }
     }
 
@@ -377,7 +366,6 @@ public class ElasticsearchQueryStoreTest {
             assertTrue("Requested Id should be present in response", responseIdValues.containsKey(id));
             assertNotNull(responseIdValues.get(id));
             assertEquals(id, responseIdValues.get(id).getId());
-            assertEquals("Timestamp should match request timestamp", idValues.get(id).getTimestamp(), responseIdValues.get(id).getTimestamp());
         }
     }
 
@@ -402,14 +390,15 @@ public class ElasticsearchQueryStoreTest {
         Thread.sleep(500);
 
         Set<FieldTypeMapping> mappings = new HashSet<FieldTypeMapping>();
-        mappings.add(new FieldTypeMapping("word", FieldType.STRING));
-        mappings.add(new FieldTypeMapping("data.data", FieldType.STRING));
-        mappings.add(new FieldTypeMapping("header.hello", FieldType.STRING));
+        mappings.add(new FieldTypeMapping("word", FieldType.KEYWORD));
+        mappings.add(new FieldTypeMapping("data.data", FieldType.KEYWORD));
+        mappings.add(new FieldTypeMapping("header.hello", FieldType.KEYWORD));
         mappings.add(new FieldTypeMapping("head.hello", FieldType.LONG));
 
         TableFieldMapping tableFieldMapping = new TableFieldMapping(TestUtils.TEST_TABLE_NAME, mappings);
         TableFieldMapping responseMapping = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
 
+        System.out.println(responseMapping.toString());
         assertEquals(tableFieldMapping.getTable(), responseMapping.getTable());
         assertTrue(tableFieldMapping.getMappings().equals(responseMapping.getMappings()));
     }

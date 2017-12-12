@@ -34,7 +34,7 @@ public class TrendRequest extends ActionRequest {
 
     private String field;
 
-    private String timestamp = "_timestamp";
+    private String timestamp = "timestamp";
 
     private Period period = Period.days;
 

@@ -67,7 +67,7 @@ public class FilterAction extends Action<Query> {
         getParameter().setTable(ElasticsearchUtils.getValidTableName(getParameter().getTable()));
         if (null == getParameter().getSort()) {
             ResultSort resultSort = new ResultSort();
-            resultSort.setField("_timestamp");
+            resultSort.setField("timestamp");
             resultSort.setOrder(ResultSort.Order.desc);
             getParameter().setSort(resultSort);
         }
@@ -143,7 +143,7 @@ public class FilterAction extends Action<Query> {
             if (ids.isEmpty()) {
                 return new QueryResponse(Collections.<Document>emptyList(), 0);
             }
-            return new QueryResponse(getQueryStore().getAll(parameter.getTable(), ids, true), searchHits.totalHits());
+            return new QueryResponse(getQueryStore().getAll(parameter.getTable(), ids, true), searchHits.getTotalHits());
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);
         }

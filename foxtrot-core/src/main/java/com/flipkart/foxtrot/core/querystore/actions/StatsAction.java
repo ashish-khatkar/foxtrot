@@ -128,7 +128,6 @@ public class StatsAction extends Action<StatsRequest> {
                         termsBuilder.subAggregation(tempBuilder);
                         termsBuilder = tempBuilder;
                     }
-                    termsBuilder.size(0);
                     if (null == rootBuilder) {
                         rootBuilder = termsBuilder;
                     }

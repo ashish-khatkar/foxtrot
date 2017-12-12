@@ -180,7 +180,7 @@ public class HistogramAction extends Action<HistogramRequest> {
     @Override
     protected Filter getDefaultTimeSpan() {
         LastFilter lastFilter = new LastFilter();
-        lastFilter.setField("_timestamp");
+        lastFilter.setField("timestamp");
         lastFilter.setDuration(Duration.days(1));
         return lastFilter;
     }

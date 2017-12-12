@@ -24,7 +24,7 @@ public class StatsTrendRequest extends ActionRequest {
 
     private Period period = Period.hours;
 
-    private String timestamp = "_timestamp";
+    private String timestamp = "timestamp";
 
     public StatsTrendRequest() {
         super(Opcodes.STATS_TREND);

@@ -165,7 +165,6 @@ public class StatsTrendAction extends Action<StatsTrendRequest> {
                 termsBuilder.subAggregation(tempBuilder);
                 termsBuilder = tempBuilder;
             }
-            termsBuilder.size(0);
             if (null == rootBuilder) {
                 rootBuilder = termsBuilder;
             }
@@ -234,7 +233,7 @@ public class StatsTrendAction extends Action<StatsTrendRequest> {
     @Override
     protected Filter getDefaultTimeSpan() {
         LastFilter lastFilter = new LastFilter();
-        lastFilter.setField("_timestamp");
+        lastFilter.setField("timestamp");
         lastFilter.setDuration(Duration.days(1));
         return lastFilter;
     }

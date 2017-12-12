@@ -334,7 +334,15 @@ public class ElasticsearchQueryStore implements QueryStore {
 
     @Override
     public IndicesStatsResponse getIndicesStats() throws ExecutionException, InterruptedException {
-        return connection.getClient().admin().indices().prepareStats(ElasticsearchUtils.getAllIndicesPattern()).clear().setDocs(true).setStore(true).execute().get();
+        return connection.getClient()
+                .admin()
+                .indices()
+                .prepareStats(ElasticsearchUtils.getAllIndicesPattern())
+                .clear()
+                .setDocs(true)
+                .setStore(true)
+                .execute()
+                .get();
     }
 
     private String convert(Document translatedDocument) {

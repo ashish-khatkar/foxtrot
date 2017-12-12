@@ -41,6 +41,7 @@ public class MockElasticsearchServer {
         Settings settings = Settings.builder()
                 .put("http.enabled", "false")
                 .put("path.home", "target/" + DATA_DIRECTORY)
+                .put("transport.type", "local")
                 .build();
 
         node = new Node(settings).start();
