@@ -349,6 +349,7 @@ public class ElasticsearchQueryStore implements QueryStore {
         JsonNode metaNode = mapper.valueToTree(translatedDocument.getMetadata());
         ObjectNode dataNode = translatedDocument.getData().deepCopy();
         dataNode.put(ElasticsearchUtils.DOCUMENT_META_FIELD_NAME, metaNode);
+        dataNode.put("timestamp", translatedDocument.getTimestamp());
         return dataNode.toString();
     }
 
