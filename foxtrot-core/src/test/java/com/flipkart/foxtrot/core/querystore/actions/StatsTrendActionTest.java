@@ -53,14 +53,14 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionWithoutNesting() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(TestUtils.TEST_TABLE_NAME);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField("battery");
 
         BetweenFilter betweenFilter = new BetweenFilter();
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         request.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
         StatsTrendResponse statsTrendResponse = StatsTrendResponse.class.cast(getQueryExecutor().execute(request));
@@ -75,7 +75,7 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionWithNesting() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(TestUtils.TEST_TABLE_NAME);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField("battery");
         request.setNesting(Lists.newArrayList("os"));
 
@@ -83,7 +83,7 @@ public class StatsTrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         request.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
         StatsTrendResponse statsTrendResponse = StatsTrendResponse.class.cast(getQueryExecutor().execute(request));
@@ -97,7 +97,7 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionWithMultiLevelNesting() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(TestUtils.TEST_TABLE_NAME);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField("battery");
         request.setNesting(Lists.newArrayList("os", "version"));
 
@@ -105,7 +105,7 @@ public class StatsTrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         request.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
         StatsTrendResponse statsTrendResponse = StatsTrendResponse.class.cast(getQueryExecutor().execute(request));
@@ -123,7 +123,7 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionWithNoFilter() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(TestUtils.TEST_TABLE_NAME);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField("battery");
         request.setNesting(Lists.newArrayList("os", "version"));
 
@@ -135,7 +135,7 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionNullTable() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(null);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField("battery");
         request.setNesting(Lists.newArrayList("os", "version"));
         getQueryExecutor().execute(request);
@@ -145,7 +145,7 @@ public class StatsTrendActionTest extends ActionTest {
     public void testStatsTrendActionNullField() throws FoxtrotException, JsonProcessingException {
         StatsTrendRequest request = new StatsTrendRequest();
         request.setTable(TestUtils.TEST_TABLE_NAME);
-        request.setTimestamp("_timestamp");
+        request.setTimestamp("timestamp");
         request.setField(null);
         request.setNesting(Lists.newArrayList("os", "version"));
         getQueryExecutor().execute(request);

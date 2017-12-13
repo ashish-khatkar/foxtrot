@@ -5,9 +5,9 @@ import com.google.common.collect.Maps;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
-import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityBuilder;
+import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.percentiles.Percentile;
 import org.elasticsearch.search.aggregations.metrics.percentiles.Percentiles;
 import org.elasticsearch.search.aggregations.metrics.stats.extended.InternalExtendedStats;
@@ -30,16 +30,16 @@ public class Utils {
         return AggregationBuilders.percentiles(metricKey).field(field);
     }
 
-    public static DateHistogramBuilder buildDateHistogramAggregation(String field, DateHistogramInterval interval) {
+    public static DateHistogramAggregationBuilder buildDateHistogramAggregation(String field, DateHistogramInterval interval) {
         String metricKey = getDateHistogramKey(field);
         return AggregationBuilders.dateHistogram(metricKey)
                 .minDocCount(0)
                 .field(field)
-                .timeZone(DateTimeZone.getDefault().getID())
-                .interval(interval);
+                .timeZone(DateTimeZone.getDefault())
+                .dateHistogramInterval(interval);
     }
 
-    public static CardinalityBuilder buildCardinalityAggregation(String field) {
+    public static CardinalityAggregationBuilder buildCardinalityAggregation(String field) {
         return AggregationBuilders
                 .cardinality(Utils.sanitizeFieldForAggregation(field))
                 .precisionThreshold(40000)

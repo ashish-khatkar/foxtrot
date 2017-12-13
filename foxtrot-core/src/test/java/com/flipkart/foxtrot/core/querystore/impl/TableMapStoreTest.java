@@ -22,12 +22,14 @@ import com.flipkart.foxtrot.core.table.impl.TableMapStore;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
+import org.elasticsearch.action.support.ActiveShardCount;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -317,10 +319,10 @@ public class TableMapStoreTest {
         elasticsearchServer.getClient().prepareIndex()
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
-                .setConsistencyLevel(WriteConsistencyLevel.ALL)
-                .setSource(mapper.writeValueAsString(table))
+                .setWaitForActiveShards(ActiveShardCount.ALL)
+                .setSource(mapper.writeValueAsString(table), XContentType.JSON)
                 .setId(table.getName())
-                .setRefresh(true)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                 .execute()
                 .actionGet();
 
@@ -345,10 +347,10 @@ public class TableMapStoreTest {
         elasticsearchServer.getClient().prepareIndex()
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
-                .setConsistencyLevel(WriteConsistencyLevel.ALL)
-                .setSource("{ \"test\" : \"test\"}")
+                .setWaitForActiveShards(ActiveShardCount.ALL)
+                .setSource("{ \"test\" : \"test\"}", XContentType.JSON)
                 .setId(TEST_TABLE)
-                .setRefresh(true)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                 .execute()
                 .actionGet();
         tableMapStore.load(TEST_TABLE);
@@ -366,10 +368,10 @@ public class TableMapStoreTest {
             elasticsearchServer.getClient().prepareIndex()
                     .setIndex(TABLE_META_INDEX)
                     .setType(TABLE_META_TYPE)
-                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
-                    .setSource(mapper.writeValueAsString(table))
+                    .setWaitForActiveShards(ActiveShardCount.ALL)
+                    .setSource(mapper.writeValueAsString(table), XContentType.JSON)
                     .setId(table.getName())
-                    .setRefresh(true)
+                    .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                     .execute()
                     .actionGet();
         }
@@ -392,10 +394,10 @@ public class TableMapStoreTest {
         elasticsearchServer.getClient().prepareIndex()
                 .setIndex(TABLE_META_INDEX)
                 .setType(TABLE_META_TYPE)
-                .setConsistencyLevel(WriteConsistencyLevel.ALL)
-                .setSource("{ \"test\" : \"test\"}")
+                .setWaitForActiveShards(ActiveShardCount.ALL)
+                .setSource("{ \"test\" : \"test\"}", XContentType.JSON)
                 .setId(TEST_TABLE)
-                .setRefresh(true)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                 .execute()
                 .actionGet();
         tableMapStore.loadAll(Arrays.asList(TEST_TABLE));
@@ -413,10 +415,10 @@ public class TableMapStoreTest {
             elasticsearchServer.getClient().prepareIndex()
                     .setIndex(TABLE_META_INDEX)
                     .setType(TABLE_META_TYPE)
-                    .setConsistencyLevel(WriteConsistencyLevel.ALL)
-                    .setSource(mapper.writeValueAsString(table))
+                    .setWaitForActiveShards(ActiveShardCount.ALL)
+                    .setSource(mapper.writeValueAsString(table), XContentType.JSON)
                     .setId(table.getName())
-                    .setRefresh(true)
+                    .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                     .execute()
                     .actionGet();
         }

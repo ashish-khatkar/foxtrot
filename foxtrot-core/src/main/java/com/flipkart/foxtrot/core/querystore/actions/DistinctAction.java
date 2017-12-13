@@ -22,11 +22,10 @@ import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,8 +112,8 @@ public class DistinctAction extends Action<DistinctRequest> {
             query = getConnection().getClient()
                     .prepareSearch(ElasticsearchUtils.getIndices(request.getTable(), request))
                     .setIndicesOptions(Utils.indicesOptions());
-            TermsBuilder rootBuilder = null;
-            TermsBuilder termsBuilder = null;
+            TermsAggregationBuilder rootBuilder = null;
+            TermsAggregationBuilder termsBuilder = null;
 
             for (ResultSort nestedField : request.getNesting()) {
                 String aggregationKey = Utils.sanitizeFieldForAggregation(nestedField.getField());
@@ -123,11 +122,10 @@ public class DistinctAction extends Action<DistinctRequest> {
                 if (null == termsBuilder) {
                     termsBuilder = AggregationBuilders.terms(aggregationKey).field(nestedField.getField()).order(order);
                 } else {
-                    TermsBuilder tempBuilder = AggregationBuilders.terms(aggregationKey).field(nestedField.getField()).order(order);
+                    TermsAggregationBuilder tempBuilder = AggregationBuilders.terms(aggregationKey).field(nestedField.getField()).order(order);
                     termsBuilder.subAggregation(tempBuilder);
                     termsBuilder = tempBuilder;
                 }
-                termsBuilder.size(0);
                 if (null == rootBuilder) {
                     rootBuilder = termsBuilder;
                 }

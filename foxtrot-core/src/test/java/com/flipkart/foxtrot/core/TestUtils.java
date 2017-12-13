@@ -123,111 +123,111 @@ public class TestUtils {
 
     public static List<Document> getQueryDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117004L, new Object[]{"os", "android", "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397658117003L, new Object[]{"os", "android", "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1397658117002L, new Object[]{"os", "android", "device", "nexus", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1397658117001L, new Object[]{"os", "android", "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 1, "device", "nexus"}, mapper));
-        documents.add(TestUtils.getDocument("B", 1397658118001L, new Object[]{"os", "android", "version", 1, "device", "galaxy"}, mapper));
-        documents.add(TestUtils.getDocument("C", 1397658118002L, new Object[]{"os", "android", "version", 2, "device", "nexus"}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397658118003L, new Object[]{"os", "ios", "version", 1, "device", "iphone"}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397658118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad"}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117004L, new Object[]{"os", "android", "device", "nexus", "battery", 24, "timestamp", 1397658117004L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397658117003L, new Object[]{"os", "android", "device", "nexus", "battery", 48, "timestamp", 1397658117003L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1397658117002L, new Object[]{"os", "android", "device", "nexus", "battery", 74, "timestamp", 1397658117002L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1397658117001L, new Object[]{"os", "android", "device", "nexus", "battery", 99, "timestamp", 1397658117001L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("B", 1397658118001L, new Object[]{"os", "android", "version", 1, "device", "galaxy", "timestamp", 1397658118001L}, mapper));
+        documents.add(TestUtils.getDocument("C", 1397658118002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "timestamp", 1397658118002L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397658118003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "timestamp", 1397658118003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397658118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "timestamp", 1397658118004L}, mapper));
         return documents;
     }
 
     public static List<Document> getGroupDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1397658117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87}, mapper));
-        documents.add(TestUtils.getDocument("B", 1397658118001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76}, mapper));
-        documents.add(TestUtils.getDocument("C", 1397658118002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397658118003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397658118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56}, mapper));
-        documents.add(TestUtils.getDocument("F", 1397658118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35}, mapper));
-        documents.add(TestUtils.getDocument("G", 1397658118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1397658117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("B", 1397658118001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76, "timestamp", 1397658118001L}, mapper));
+        documents.add(TestUtils.getDocument("C", 1397658118002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78, "timestamp", 1397658118002L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397658118003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24, "timestamp", 1397658118003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397658118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56, "timestamp", 1397658118004L}, mapper));
+        documents.add(TestUtils.getDocument("F", 1397658118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35, "timestamp", 1397658118005L}, mapper));
+        documents.add(TestUtils.getDocument("G", 1397658118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44, "timestamp", 1397658118006L}, mapper));
         return documents;
     }
 
     public static List<Document> getHistogramDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87}, mapper));
-        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76}, mapper));
-        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56}, mapper));
-        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35}, mapper));
-        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76, "timestamp", 1397658218001L}, mapper));
+        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78, "timestamp", 1398658218002L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24, "timestamp", 1397758218003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56, "timestamp", 1397958118004L}, mapper));
+        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35, "timestamp", 1398653118005L}, mapper));
+        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44, "timestamp", 1398653118006L}, mapper));
         return documents;
     }
 
     public static List<Document> getTrendDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87}, mapper));
-        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76}, mapper));
-        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56}, mapper));
-        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35}, mapper));
-        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76, "timestamp", 1397658218001L}, mapper));
+        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78, "timestamp", 1398658218002L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24, "timestamp", 1397758218003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56, "timestamp", 1397958118004L}, mapper));
+        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35, "timestamp", 1398653118005L}, mapper));
+        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44, "timestamp", 1398653118006L}, mapper));
         return documents;
     }
 
     public static List<Document> getStatsDocuments(ObjectMapper mapper) {
         List<Document> documents = Lists.newArrayList();
-        documents.add(TestUtils.getDocument("Z", 1467282856000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 10}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1467331200000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 20}, mapper));
-        documents.add(TestUtils.getDocument("X", 1467417600000L, new Object[]{"os", "ios", "version", 3, "device", "galaxy", "battery", 30}, mapper));
-        documents.add(TestUtils.getDocument("W", 1467504000000L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 40}, mapper));
-        documents.add(TestUtils.getDocument("A", 1467590400000L, new Object[]{"os", "wp", "version", 3, "device", "nexus", "battery", 50}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1467282856000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 10, "timestamp", 1467282856000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1467331200000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 20, "timestamp", 1467331200000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1467417600000L, new Object[]{"os", "ios", "version", 3, "device", "galaxy", "battery", 30, "timestamp", 1467417600000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1467504000000L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 40, "timestamp", 1467504000000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1467590400000L, new Object[]{"os", "wp", "version", 3, "device", "nexus", "battery", 50, "timestamp", 1467590400000L}, mapper));
         return documents;
     }
 
     public static List<Document> getStatsTrendDocuments(ObjectMapper mapper) {
         List<Document> documents = Lists.newArrayList();
-        documents.add(TestUtils.getDocument("Z", 1467282856000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1467331200000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1467417600000L, new Object[]{"os", "ios", "version", 3, "device", "galaxy", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1467504000000L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1467590400000L, new Object[]{"os", "wp", "version", 3, "device", "nexus", "battery", 87}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1467282856000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1467282856000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1467331200000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1467331200000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1467417600000L, new Object[]{"os", "ios", "version", 3, "device", "galaxy", "battery", 74, "timestamp", 1467417600000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1467504000000L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 99, "timestamp", 1467504000000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1467590400000L, new Object[]{"os", "wp", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1467590400000L}, mapper));
         return documents;
     }
 
     public static List<Document> getCountDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87}, mapper));
-        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76}, mapper));
-        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56}, mapper));
-        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35}, mapper));
-        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("X", 1397651117000L, new Object[]{"os", "android", "version", 3, "device", "galaxy", "battery", 74, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("W", 1397658117000L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 99, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("B", 1397658218001L, new Object[]{"os", "android", "version", 2, "device", "galaxy", "battery", 76, "timestamp", 1397658218001L}, mapper));
+        documents.add(TestUtils.getDocument("C", 1398658218002L, new Object[]{"os", "android", "version", 2, "device", "nexus", "battery", 78, "timestamp", 1398658218002L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24, "timestamp", 1397758218003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56, "timestamp", 1397958118004L}, mapper));
+        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35, "timestamp", 1398653118005L}, mapper));
+        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44, "timestamp", 1398653118006L}, mapper));
         return documents;
     }
 
     public static List<Document> getDistinctDocuments(ObjectMapper mapper) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87}, mapper));
-        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56}, mapper));
-        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35}, mapper));
-        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44}, mapper));
+        documents.add(TestUtils.getDocument("Z", 1397658117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 24, "timestamp", 1397658117000L}, mapper));
+        documents.add(TestUtils.getDocument("Y", 1397651117000L, new Object[]{"os", "android", "version", 1, "device", "nexus", "battery", 48, "timestamp", 1397651117000L}, mapper));
+        documents.add(TestUtils.getDocument("A", 1397658118000L, new Object[]{"os", "android", "version", 3, "device", "nexus", "battery", 87, "timestamp", 1397658118000L}, mapper));
+        documents.add(TestUtils.getDocument("D", 1397758218003L, new Object[]{"os", "ios", "version", 1, "device", "iphone", "battery", 24, "timestamp", 1397758218003L}, mapper));
+        documents.add(TestUtils.getDocument("E", 1397958118004L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 56, "timestamp", 1397958118004L}, mapper));
+        documents.add(TestUtils.getDocument("F", 1398653118005L, new Object[]{"os", "ios", "version", 2, "device", "nexus", "battery", 35, "timestamp", 1398653118005L}, mapper));
+        documents.add(TestUtils.getDocument("G", 1398653118006L, new Object[]{"os", "ios", "version", 2, "device", "ipad", "battery", 44, "timestamp", 1398653118006L}, mapper));
         return documents;
     }
 
@@ -249,15 +249,15 @@ public class TestUtils {
 
     public static List<Document> getQueryDocumentsDifferentDate(ObjectMapper mapper, long startTimestamp) {
         List<Document> documents = new Vector<Document>();
-        documents.add(TestUtils.getDocument("Z", startTimestamp, new Object[]{"os", "android", "device", "nexus", "battery", 24}, mapper));
-        documents.add(TestUtils.getDocument("Y", startTimestamp++, new Object[]{"os", "android", "device", "nexus", "battery", 48}, mapper));
-        documents.add(TestUtils.getDocument("X", startTimestamp++, new Object[]{"os", "android", "device", "nexus", "battery", 74}, mapper));
-        documents.add(TestUtils.getDocument("W", startTimestamp++, new Object[]{"os", "android", "device", "nexus", "battery", 99}, mapper));
-        documents.add(TestUtils.getDocument("A", startTimestamp++, new Object[]{"os", "android", "version", 1, "device", "nexus"}, mapper));
-        documents.add(TestUtils.getDocument("B", startTimestamp++, new Object[]{"os", "android", "version", 1, "device", "galaxy"}, mapper));
-        documents.add(TestUtils.getDocument("C", startTimestamp++, new Object[]{"os", "android", "version", 2, "device", "nexus"}, mapper));
-        documents.add(TestUtils.getDocument("D", startTimestamp++, new Object[]{"os", "ios", "version", 1, "device", "iphone"}, mapper));
-        documents.add(TestUtils.getDocument("E", startTimestamp++, new Object[]{"os", "ios", "version", 2, "device", "ipad"}, mapper));
+        documents.add(TestUtils.getDocument("Z", startTimestamp, new Object[]{"os", "android", "device", "nexus", "battery", 24, "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("Y", ++startTimestamp, new Object[]{"os", "android", "device", "nexus", "battery", 48, "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("X", ++startTimestamp, new Object[]{"os", "android", "device", "nexus", "battery", 74, "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("W", ++startTimestamp, new Object[]{"os", "android", "device", "nexus", "battery", 99, "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("A", ++startTimestamp, new Object[]{"os", "android", "version", 1, "device", "nexus", "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("B", ++startTimestamp, new Object[]{"os", "android", "version", 1, "device", "galaxy", "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("C", ++startTimestamp, new Object[]{"os", "android", "version", 2, "device", "nexus", "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("D", ++startTimestamp, new Object[]{"os", "ios", "version", 1, "device", "iphone", "timestamp", startTimestamp}, mapper));
+        documents.add(TestUtils.getDocument("E", ++startTimestamp, new Object[]{"os", "ios", "version", 2, "device", "ipad", "timestamp", startTimestamp}, mapper));
         return documents;
     }
 }

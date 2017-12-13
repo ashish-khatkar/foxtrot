@@ -54,8 +54,15 @@ public class ClusterHealthResource {
     }
 
     @GET
-    @Path("indicesstats")
+    @Path("/indicesstats")
     public IndicesStatsResponse getIndicesStat() throws ExecutionException, InterruptedException, JsonProcessingException {
         return queryStore.getIndicesStats();
+    }
+
+    // This is being used to power ClusterHealthResourceTest Unit Tests. Serialisation of IndicesStatsResponse in test environment causes Assertion error.
+    @GET
+    @Path("/indicesstatsasstring")
+    public String getIndicesStatAsString() throws ExecutionException, InterruptedException, JsonProcessingException {
+        return queryStore.getIndicesStats().toString();
     }
 }

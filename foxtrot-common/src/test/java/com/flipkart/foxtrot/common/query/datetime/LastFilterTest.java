@@ -33,7 +33,7 @@ public class LastFilterTest {
                 currentTime.getMillis());
         LastFilter lastFilter = objectMapper.readValue(json, LastFilter.class);
         TimeWindow timeWindow = lastFilter.getWindow();
-        Assert.assertEquals("_timestamp", lastFilter.getField());
+        Assert.assertEquals("timestamp", lastFilter.getField());
         Assert.assertEquals(currentTime.getMillis(), lastFilter.getCurrentTime());
         Assert.assertEquals(currentTime.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).minusHours(1).getMillis(),
                 timeWindow.getStartTime());
@@ -46,7 +46,7 @@ public class LastFilterTest {
                 currentTime.getMillis());
         LastFilter lastFilter = objectMapper.readValue(json, LastFilter.class);
         TimeWindow timeWindow = lastFilter.getWindow();
-        Assert.assertEquals("_timestamp", lastFilter.getField());
+        Assert.assertEquals("timestamp", lastFilter.getField());
         Assert.assertEquals(currentTime.getMillis(), lastFilter.getCurrentTime());
         Assert.assertEquals(currentTime.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).getMillis(),
                 timeWindow.getStartTime());
@@ -59,7 +59,7 @@ public class LastFilterTest {
                 currentTime.getMillis());
         LastFilter lastFilter = objectMapper.readValue(json, LastFilter.class);
         TimeWindow timeWindow = lastFilter.getWindow();
-        Assert.assertEquals("_timestamp", lastFilter.getField());
+        Assert.assertEquals("timestamp", lastFilter.getField());
         Assert.assertEquals(currentTime.getMillis(), lastFilter.getCurrentTime());
         Assert.assertEquals(currentTime.minusHours(1).getMillis(), timeWindow.getStartTime());
     }

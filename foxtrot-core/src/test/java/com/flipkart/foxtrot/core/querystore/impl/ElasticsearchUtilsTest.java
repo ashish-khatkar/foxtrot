@@ -54,7 +54,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{"foxtrot-test-table-04-4-2015"}, indexes);
     }
 
@@ -67,7 +66,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{
                 "foxtrot-test-table-02-4-2015",
                 "foxtrot-test-table-03-4-2015",
@@ -84,7 +82,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{
                 "foxtrot-test-table-02-4-2015",
                 "foxtrot-test-table-03-4-2015"}, indexes);
@@ -99,7 +96,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{
                 "foxtrot-test-table-02-4-2015",
                 "foxtrot-test-table-03-4-2015",
@@ -115,7 +111,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{
                 "foxtrot-test-table-02-4-2015",
                 "foxtrot-test-table-03-4-2015",
@@ -131,7 +126,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{"foxtrot-test-table-*"}, indexes);
     }
 
@@ -144,7 +138,6 @@ public class ElasticsearchUtilsTest {
         request.setFilters(Collections.<Filter>singletonList(filter));
         String indexes[] = ElasticsearchUtils.getIndices("test", request,
                 new PeriodSelector(request.getFilters()).analyze(TEST_CURRENT_TIME));
-        System.out.println(Arrays.toString(indexes));
         Assert.assertArrayEquals(new String[]{"foxtrot-test-table-*"}, indexes);
     }
 

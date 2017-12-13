@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
@@ -43,8 +42,10 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.SearchHit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -110,8 +111,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setType(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setId(translatedDocument.getId())
                     .setTimestamp(Long.toString(timestamp))
-                    .setSource(convert(translatedDocument))
-                    .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
+                    .setSource(convert(translatedDocument), XContentType.JSON)
+                    .setWaitForActiveShards(ActiveShardCount.DEFAULT)
                     .execute()
                     .get(2, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -148,12 +149,12 @@ public class ElasticsearchQueryStore implements QueryStore {
                         .type(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                         .id(document.getId())
                         .timestamp(Long.toString(timestamp))
-                        .source(convert(document));
+                        .source(convert(document), XContentType.JSON);
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0) {
                 BulkResponse responses = bulkRequestBuilder
-                        .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
+                        .setWaitForActiveShards(ActiveShardCount.DEFAULT)
                         .execute()
                         .get(10, TimeUnit.SECONDS);
                 for (int i = 0; i < responses.getItems().length; i++) {
@@ -187,11 +188,11 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .prepareSearch(ElasticsearchUtils.getIndices(table))
                 .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                 .setQuery(boolQuery().filter(termQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, id)))
-                .setNoFields()
+                .setFetchSource(false)
                 .setSize(1)
                 .execute()
                 .actionGet();
-        if (searchResponse.getHits().totalHits() == 0) {
+        if (searchResponse.getHits().getTotalHits() == 0) {
             logger.warn("Going into compatibility mode, looks using passed in ID as the data store id: {}", id);
             lookupKey = id;
         } else {
@@ -223,7 +224,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setQuery(boolQuery().filter(termsQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, ids.toArray(new String[ids.size()]))))
                     .setFetchSource(false)
-                    .addField(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME) // Used for compatibility
+                    .addStoredField(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME)
                     .setSize(ids.size())
                     .execute()
                     .actionGet();
@@ -329,13 +330,22 @@ public class ElasticsearchQueryStore implements QueryStore {
 
     @Override
     public IndicesStatsResponse getIndicesStats() throws ExecutionException, InterruptedException {
-        return connection.getClient().admin().indices().prepareStats(ElasticsearchUtils.getAllIndicesPattern()).clear().setDocs(true).setStore(true).execute().get();
+        return connection.getClient()
+                .admin()
+                .indices()
+                .prepareStats(ElasticsearchUtils.getAllIndicesPattern())
+                .clear()
+                .setDocs(true)
+                .setStore(true)
+                .execute()
+                .get();
     }
 
     private String convert(Document translatedDocument) {
         JsonNode metaNode = mapper.valueToTree(translatedDocument.getMetadata());
         ObjectNode dataNode = translatedDocument.getData().deepCopy();
         dataNode.put(ElasticsearchUtils.DOCUMENT_META_FIELD_NAME, metaNode);
+        dataNode.put("timestamp", translatedDocument.getTimestamp());
         return dataNode.toString();
     }
 

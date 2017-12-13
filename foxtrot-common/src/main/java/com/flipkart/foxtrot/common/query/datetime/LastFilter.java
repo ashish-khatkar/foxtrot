@@ -22,7 +22,7 @@ public class LastFilter extends Filter {
     public LastFilter() {
         super(FilterOperator.last);
         currentTime = System.currentTimeMillis();
-        super.setField("_timestamp");
+        super.setField("timestamp");
     }
 
     @Override

@@ -41,7 +41,7 @@ import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 
 import java.util.ArrayList;
@@ -154,17 +154,16 @@ public class GroupAction extends Action<GroupRequest> {
     }
 
     private AbstractAggregationBuilder buildAggregation() {
-        TermsBuilder rootBuilder = null;
-        TermsBuilder termsBuilder = null;
+        TermsAggregationBuilder rootBuilder = null;
+        TermsAggregationBuilder termsBuilder = null;
         for (String field : getParameter().getNesting()) {
             if (null == termsBuilder) {
                 termsBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
             } else {
-                TermsBuilder tempBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
+                TermsAggregationBuilder tempBuilder = AggregationBuilders.terms(Utils.sanitizeFieldForAggregation(field)).field(field);
                 termsBuilder.subAggregation(tempBuilder);
                 termsBuilder = tempBuilder;
             }
-            termsBuilder.size(0);
             if (null == rootBuilder) {
                 rootBuilder = termsBuilder;
             }

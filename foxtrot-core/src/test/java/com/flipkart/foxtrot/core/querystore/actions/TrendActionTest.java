@@ -63,7 +63,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         doReturn(null).when(getElasticsearchConnection()).getClient();
@@ -79,7 +79,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         trendRequest.setField(null);
 
@@ -100,7 +100,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         trendRequest.setField("all");
         trendRequest.setValues(Collections.<String>emptyList());
@@ -120,7 +120,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         trendRequest.setField("");
         trendRequest.setValues(Collections.<String>emptyList());
@@ -140,7 +140,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         trendRequest.setField("!@!41242$");
         trendRequest.setValues(Collections.<String>emptyList());
@@ -161,7 +161,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
         try {
@@ -180,7 +180,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
@@ -214,7 +214,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
@@ -248,7 +248,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Collections.<Filter>singletonList(betweenFilter));
 
@@ -282,7 +282,7 @@ public class TrendActionTest extends ActionTest {
         betweenFilter.setFrom(1L);
         betweenFilter.setTo(System.currentTimeMillis());
         betweenFilter.setTemporal(true);
-        betweenFilter.setField("_timestamp");
+        betweenFilter.setField("timestamp");
         trendRequest.setField("os");
         trendRequest.setFilters(Lists.<Filter>newArrayList(betweenFilter));
         trendRequest.setValues(Arrays.asList("android"));
@@ -314,7 +314,7 @@ public class TrendActionTest extends ActionTest {
         equalsFilter.setValue(1);
         LessThanFilter lessThanFilter = new LessThanFilter();
         lessThanFilter.setTemporal(true);
-        lessThanFilter.setField("_timestamp");
+        lessThanFilter.setField("timestamp");
         lessThanFilter.setValue(System.currentTimeMillis());
         trendRequest.setFilters(Lists.newArrayList(equalsFilter, lessThanFilter));
 
@@ -343,7 +343,7 @@ public class TrendActionTest extends ActionTest {
         equalsFilter.setValue(1);
         LessThanFilter lessThanFilter = new LessThanFilter();
         lessThanFilter.setTemporal(true);
-        lessThanFilter.setField("_timestamp");
+        lessThanFilter.setField("timestamp");
         lessThanFilter.setValue(System.currentTimeMillis());
         trendRequest.setFilters(Lists.newArrayList(equalsFilter, lessThanFilter));
 
@@ -376,7 +376,7 @@ public class TrendActionTest extends ActionTest {
         equalsFilter.setValue(1);
         LessThanFilter lessThanFilter = new LessThanFilter();
         lessThanFilter.setTemporal(true);
-        lessThanFilter.setField("_timestamp");
+        lessThanFilter.setField("timestamp");
         lessThanFilter.setValue(System.currentTimeMillis());
         trendRequest.setFilters(Lists.newArrayList(equalsFilter, lessThanFilter));
 

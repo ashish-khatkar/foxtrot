@@ -19,7 +19,7 @@ import com.flipkart.foxtrot.common.ActionRequest;
 import com.flipkart.foxtrot.common.ActionResponse;
 import com.flipkart.foxtrot.common.query.Filter;
 import com.flipkart.foxtrot.common.query.general.AnyFilter;
-import com.flipkart.foxtrot.common.query.numeric.LessThanFilter;
+import com.flipkart.foxtrot.common.query.numeric.BetweenFilter;
 import com.flipkart.foxtrot.common.util.CollectionUtils;
 import com.flipkart.foxtrot.core.cache.Cache;
 import com.flipkart.foxtrot.core.cache.CacheManager;
@@ -215,11 +215,12 @@ public abstract class Action<ParameterType extends ActionRequest> implements Cal
     }
 
     protected Filter getDefaultTimeSpan() {
-        LessThanFilter lessThanFilter = new LessThanFilter();
-        lessThanFilter.setTemporal(true);
-        lessThanFilter.setField("_timestamp");
-        lessThanFilter.setValue(System.currentTimeMillis());
-        return lessThanFilter;
+        BetweenFilter betweenFilter = new BetweenFilter();
+        betweenFilter.setTemporal(true);
+        betweenFilter.setFrom(0l);
+        betweenFilter.setTo(System.currentTimeMillis());
+        betweenFilter.setField("timestamp");
+        return betweenFilter;
     }
 
     private List<Filter> checkAndAddTemporalBoundary(List<Filter> filters) {

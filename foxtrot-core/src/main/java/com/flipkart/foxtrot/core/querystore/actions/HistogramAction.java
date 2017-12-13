@@ -40,7 +40,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
@@ -170,7 +170,7 @@ public class HistogramAction extends Action<HistogramRequest> {
 
     private AbstractAggregationBuilder buildAggregation() {
         DateHistogramInterval interval = Utils.getHistogramInterval(getParameter().getPeriod());
-        DateHistogramBuilder histogramBuilder = Utils.buildDateHistogramAggregation(getParameter().getField(), interval);
+        DateHistogramAggregationBuilder histogramBuilder = Utils.buildDateHistogramAggregation(getParameter().getField(), interval);
         if (!CollectionUtils.isNullOrEmpty(getParameter().getUniqueCountOn())) {
             histogramBuilder.subAggregation(Utils.buildCardinalityAggregation(getParameter().getUniqueCountOn()));
         }
@@ -180,7 +180,7 @@ public class HistogramAction extends Action<HistogramRequest> {
     @Override
     protected Filter getDefaultTimeSpan() {
         LastFilter lastFilter = new LastFilter();
-        lastFilter.setField("_timestamp");
+        lastFilter.setField("timestamp");
         lastFilter.setDuration(Duration.days(1));
         return lastFilter;
     }

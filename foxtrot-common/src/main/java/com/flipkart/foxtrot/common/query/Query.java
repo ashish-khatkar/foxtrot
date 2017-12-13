@@ -39,7 +39,7 @@ public class Query extends ActionRequest {
     public Query() {
         super(Opcodes.QUERY);
         this.sort = new ResultSort();
-        this.sort.setField("_timestamp");
+        this.sort.setField("timestamp");
         this.sort.setOrder(ResultSort.Order.desc);
     }
 
