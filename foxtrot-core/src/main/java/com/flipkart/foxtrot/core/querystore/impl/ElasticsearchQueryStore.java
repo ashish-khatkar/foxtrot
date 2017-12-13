@@ -184,15 +184,11 @@ public class ElasticsearchQueryStore implements QueryStore {
         }
         fxTable = tableMetadataManager.get(table);
         String lookupKey;
-        /**
-         * Need to see what function should be used to replace setNoFields
-         * setNoFields
-         */
         SearchResponse searchResponse = connection.getClient()
                 .prepareSearch(ElasticsearchUtils.getIndices(table))
                 .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                 .setQuery(boolQuery().filter(termQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, id)))
-//                .setNoFields()
+                .setFetchSource(false)
                 .setSize(1)
                 .execute()
                 .actionGet();

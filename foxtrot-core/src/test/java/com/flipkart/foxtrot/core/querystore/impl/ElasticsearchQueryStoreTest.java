@@ -399,7 +399,6 @@ public class ElasticsearchQueryStoreTest {
         TableFieldMapping tableFieldMapping = new TableFieldMapping(TestUtils.TEST_TABLE_NAME, mappings);
         TableFieldMapping responseMapping = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
 
-        System.out.println(responseMapping.toString());
         assertEquals(tableFieldMapping.getTable(), responseMapping.getTable());
         assertTrue(tableFieldMapping.getMappings().equals(responseMapping.getMappings()));
     }
