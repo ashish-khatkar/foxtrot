@@ -126,7 +126,7 @@ FilterSection.prototype.runQuery = function(){
    var toDate = filterSection.find(".date-to").data("DateTimePicker").getDate().unix();
    if((fromDate - toDate) > 1000) {
        filters.push({
-           field: "_timestamp",
+           field: "timestamp",
            operator: "between",
            from: fromDate,
            to: toDate
@@ -139,7 +139,7 @@ FilterSection.prototype.runQuery = function(){
        table: table.name,
        filters: filters,
        sort: {
-           field: "_timestamp",
+           field: "timestamp",
            order: filterSection.find(".datasort").val()
        },
        from: this.from,

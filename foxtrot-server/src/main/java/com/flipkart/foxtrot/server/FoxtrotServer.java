@@ -24,10 +24,13 @@ import com.flipkart.foxtrot.core.cache.CacheManager;
 import com.flipkart.foxtrot.core.cache.impl.DistributedCacheFactory;
 import com.flipkart.foxtrot.core.common.DataDeletionManager;
 import com.flipkart.foxtrot.core.common.DataDeletionManagerConfig;
+import com.flipkart.foxtrot.core.common.IndexRollOverManager;
+import com.flipkart.foxtrot.core.common.IndexRollOverManagerConfig;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.datastore.impl.hbase.HBaseDataStore;
 import com.flipkart.foxtrot.core.datastore.impl.hbase.HbaseTableConnection;
 import com.flipkart.foxtrot.core.querystore.DocumentTranslator;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.querystore.QueryExecutor;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.querystore.actions.spi.AnalyticsLoader;
@@ -99,15 +102,19 @@ public class FoxtrotServer extends Application<FoxtrotServerConfiguration> {
         ElasticsearchUtils.setTableNamePrefix(configuration.getElasticsearch());
 
         TableMetadataManager tableMetadataManager = new DistributedTableMetadataManager(hazelcastConnection, elasticsearchConnection);
+        IndexAliasManager indexAliasManager = new DistributedIndexAliasManager(hazelcastConnection, elasticsearchConnection);
         DataStore dataStore = new HBaseDataStore(HBaseTableConnection,
                 environment.getObjectMapper(), new DocumentTranslator(configuration.getHbase()));
-        QueryStore queryStore = new ElasticsearchQueryStore(tableMetadataManager, elasticsearchConnection, dataStore, environment.getObjectMapper());
+        QueryStore queryStore = new ElasticsearchQueryStore(tableMetadataManager, indexAliasManager, elasticsearchConnection, dataStore, environment.getObjectMapper());
         FoxtrotTableManager tableManager = new FoxtrotTableManager(tableMetadataManager, queryStore, dataStore);
         CacheManager cacheManager = new CacheManager(new DistributedCacheFactory(hazelcastConnection, environment.getObjectMapper()));
         AnalyticsLoader analyticsLoader = new AnalyticsLoader(tableMetadataManager, dataStore, queryStore, elasticsearchConnection, cacheManager, environment.getObjectMapper());
         QueryExecutor executor = new QueryExecutor(analyticsLoader, executorService);
         DataDeletionManagerConfig dataDeletionManagerConfig = configuration.getTableDataManagerConfig();
         DataDeletionManager dataDeletionManager = new DataDeletionManager(dataDeletionManagerConfig, queryStore);
+
+        IndexRollOverManagerConfig indexRollOverManagerConfig = configuration.getIndexRollOverManagerConfig();
+        IndexRollOverManager indexRollOverManager = new IndexRollOverManager(indexRollOverManagerConfig, queryStore);
 
         List<HealthCheck> healthChecks = new ArrayList<>();
         ElasticSearchHealthCheck elasticSearchHealthCheck = new ElasticSearchHealthCheck(elasticsearchConnection);
@@ -121,6 +128,8 @@ public class FoxtrotServer extends Application<FoxtrotServerConfiguration> {
         environment.lifecycle().manage(analyticsLoader);
         environment.lifecycle().manage(dataDeletionManager);
         environment.lifecycle().manage(clusterManager);
+        environment.lifecycle().manage(indexAliasManager);
+        environment.lifecycle().manage(indexRollOverManager);
 
         environment.jersey().register(new DocumentResource(queryStore));
         environment.jersey().register(new AsyncResource(cacheManager));

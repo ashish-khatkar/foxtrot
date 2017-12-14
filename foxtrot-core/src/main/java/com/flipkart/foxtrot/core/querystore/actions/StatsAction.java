@@ -105,7 +105,7 @@ public class StatsAction extends Action<StatsRequest> {
         SearchRequestBuilder searchRequestBuilder;
         try {
             searchRequestBuilder = getConnection().getClient().prepareSearch(
-                    ElasticsearchUtils.getIndices(parameter.getTable(), parameter))
+                    ElasticsearchUtils.getIndicesForSearch(parameter.getTable(), parameter))
                     .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setIndicesOptions(Utils.indicesOptions())
                     .setQuery(new ElasticSearchQueryGenerator(parameter.getCombiner()).genFilter(parameter.getFilters()))

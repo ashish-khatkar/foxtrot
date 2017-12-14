@@ -24,6 +24,7 @@ import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.ErrorCode;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -57,6 +58,8 @@ public class ElasticsearchQueryStoreTest {
     private DataStore dataStore;
     private ElasticsearchQueryStore queryStore;
     private TableMetadataManager tableMetadataManager;
+    private IndexAliasManager indexAliasManager;
+    private HazelcastConnection hazelcastConnection;
 
     @Before
     public void setUp() throws Exception {
@@ -71,12 +74,146 @@ public class ElasticsearchQueryStoreTest {
         when(tableMetadataManager.exists(TestUtils.TEST_TABLE_NAME)).thenReturn(true);
         when(tableMetadataManager.get(anyString())).thenReturn(TestUtils.TEST_TABLE);
 
-        this.queryStore = new ElasticsearchQueryStore(tableMetadataManager, elasticsearchConnection, dataStore, mapper);
+        ClusterConfig clusterConfig = new ClusterConfig();
+        clusterConfig.setName("test-foxtrot-server");
+        SimpleClusterDiscoveryConfig simpleClusterDiscoveryConfig = Mockito.mock(SimpleClusterDiscoveryConfig.class);
+        clusterConfig.setDiscovery(simpleClusterDiscoveryConfig);
+        doReturn(ClusterDiscoveryType.foxtrot_simple).when(simpleClusterDiscoveryConfig).getType();
+        doReturn(true).when(simpleClusterDiscoveryConfig).isDisableMulticast();
+        doReturn(Lists.newArrayList("localhost")).when(simpleClusterDiscoveryConfig).getMembers();
+
+        this.hazelcastConnection = new HazelcastConnection(clusterConfig);
+        hazelcastConnection.start();
+
+        this.indexAliasManager = new DistributedIndexAliasManager(hazelcastConnection, elasticsearchConnection);
+        indexAliasManager.start();
+
+        this.queryStore = new ElasticsearchQueryStore(tableMetadataManager, indexAliasManager, elasticsearchConnection, dataStore, mapper);
+
     }
 
     @After
     public void tearDown() throws Exception {
         elasticsearchServer.shutdown();
+        hazelcastConnection.stop();
+        indexAliasManager.stop();
+    }
+
+    @Test
+    public void testNewAliasCreation() throws Exception {
+        Table table = tableMetadataManager.get(TestUtils.TEST_TABLE_NAME);
+        Document document = createDummyDocument();
+
+        String alias = ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp());
+        String index = ElasticsearchUtils.getIndexFromAlias(alias);
+
+        Document translatedDocument = TestUtils.translatedDocumentWithRowKeyVersion1(table, document);
+        doReturn(translatedDocument).when(dataStore).save(table, document);
+        queryStore.save(TestUtils.TEST_TABLE_NAME, document);
+
+        GetResponse response = elasticsearchServer.getClient()
+                .prepareGet(alias, ElasticsearchUtils.DOCUMENT_TYPE_NAME, document.getId())
+                .execute()
+                .actionGet();
+
+        assertTrue("Id should exist in ES", response.isExists());
+        assertEquals("Alias should point to index", response.getIndex(), index);
+        assertEquals("Id should match requestId", response.getId(), document.getId());
+
+    }
+
+    @Test
+    public void testMaxDocsRollOver() throws Exception {
+
+        Table table = tableMetadataManager.get(TestUtils.TEST_TABLE_NAME);
+        Document document = createDummyDocument();
+
+        String alias = ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp());
+        String index = ElasticsearchUtils.getIndexFromAlias(alias);
+
+        Document translatedDocument = TestUtils.translatedDocumentWithRowKeyVersion1(table, document);
+        doReturn(translatedDocument).when(dataStore).save(table, document);
+        queryStore.save(TestUtils.TEST_TABLE_NAME, document);
+
+        GetResponse getResponse = elasticsearchServer.getClient()
+                .prepareGet(alias, ElasticsearchUtils.DOCUMENT_TYPE_NAME, document.getId())
+                .execute()
+                .actionGet();
+
+        assertTrue("Id should exist in ES", getResponse.isExists());
+        assertEquals("Alias should point to index", getResponse.getIndex(), index);
+        assertEquals("Id should match requestId", getResponse.getId(), document.getId());
+
+        Map<String, Object> conditions = new HashMap<>();
+        conditions.put("max_docs", 1);
+        queryStore.indexRollOver(conditions);
+
+        GetResponse response = elasticsearchServer.getClient()
+                .prepareGet(alias, ElasticsearchUtils.DOCUMENT_TYPE_NAME, document.getId())
+                .execute()
+                .actionGet();
+
+
+        assertFalse("Id should not exist in index pointed by alias", response.isExists());
+        assertNotEquals("Alias should point to a different index", response.getIndex(), index);
+
+        Document newDocument = createDummyDocument();
+        Document newTranslatedDocument = TestUtils.translatedDocumentWithRowKeyVersion1(table, newDocument);
+        doReturn(newTranslatedDocument).when(dataStore).save(table, newDocument);
+        queryStore.save(TestUtils.TEST_TABLE_NAME, newDocument);
+
+        GetResponse newGetResponse = elasticsearchServer.getClient()
+                .prepareGet(alias, ElasticsearchUtils.DOCUMENT_TYPE_NAME, newDocument.getId())
+                .execute()
+                .actionGet();
+
+        assertTrue("Id should exist in index pointed by alias", newGetResponse.isExists());
+        assertNotEquals("Alias should point to a different index", response.getIndex(), index);
+        assertEquals("Id should match requestId", newGetResponse.getId(), newDocument.getId());
+    }
+
+    @Test
+    public void testSaveWithAliasGetWithAlias() throws Exception {
+        Table table = tableMetadataManager.get(TestUtils.TEST_TABLE_NAME);
+        Document document = createDummyDocument();
+
+        String alias = ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp());
+        String index = ElasticsearchUtils.getIndexFromAlias(alias);
+
+        Document translatedDocument = TestUtils.translatedDocumentWithRowKeyVersion1(table, document);
+        doReturn(translatedDocument).when(dataStore).save(table, document);
+        queryStore.save(TestUtils.TEST_TABLE_NAME, document);
+
+        GetResponse getResponse = elasticsearchServer.getClient()
+                .prepareGet(alias, ElasticsearchUtils.DOCUMENT_TYPE_NAME, document.getId())
+                .execute()
+                .actionGet();
+
+        assertTrue("Id should exist in ES", getResponse.isExists());
+        assertEquals("Alias should point to index", getResponse.getIndex(), index);
+        assertEquals("Id should match requestId", getResponse.getId(), document.getId());
+    }
+
+    @Test
+    public void testSaveWithAliasGetWithIndex() throws Exception {
+        Table table = tableMetadataManager.get(TestUtils.TEST_TABLE_NAME);
+        Document document = createDummyDocument();
+
+        String alias = ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp());
+        String index = ElasticsearchUtils.getIndexFromAlias(alias);
+
+        Document translatedDocument = TestUtils.translatedDocumentWithRowKeyVersion1(table, document);
+        doReturn(translatedDocument).when(dataStore).save(table, document);
+        queryStore.save(TestUtils.TEST_TABLE_NAME, document);
+
+        GetResponse getResponse = elasticsearchServer.getClient()
+                .prepareGet(index, ElasticsearchUtils.DOCUMENT_TYPE_NAME, document.getId())
+                .execute()
+                .actionGet();
+
+        assertTrue("Id should exist in ES", getResponse.isExists());
+        assertEquals("Index should match index", getResponse.getIndex(), index);
+        assertEquals("Id should match requestId", getResponse.getId(), document.getId());
     }
 
 
@@ -91,7 +228,7 @@ public class ElasticsearchQueryStoreTest {
 
         GetResponse getResponse = elasticsearchServer
                 .getClient()
-                .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
+                .prepareGet(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         originalDocument.getId())
                 .execute()
@@ -111,7 +248,7 @@ public class ElasticsearchQueryStoreTest {
 
         GetResponse getResponse = elasticsearchServer
                 .getClient()
-                .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
+                .prepareGet(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, originalDocument.getTimestamp()),
                         ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                         translatedDocument.getId())
                 .execute()
@@ -153,7 +290,7 @@ public class ElasticsearchQueryStoreTest {
         for (Document document : documents) {
             GetResponse getResponse = elasticsearchServer
                     .getClient()
-                    .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
+                    .prepareGet(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .execute()
@@ -185,7 +322,7 @@ public class ElasticsearchQueryStoreTest {
         for (Document document : documents) {
             GetResponse getResponse = elasticsearchServer
                     .getClient()
-                    .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
+                    .prepareGet(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .execute()
@@ -197,7 +334,7 @@ public class ElasticsearchQueryStoreTest {
         for (Document document : translatedDocuments) {
             GetResponse getResponse = elasticsearchServer
                     .getClient()
-                    .prepareGet(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
+                    .prepareGet(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp()),
                             ElasticsearchUtils.DOCUMENT_TYPE_NAME,
                             document.getId())
                     .setStoredFields("timestamp")

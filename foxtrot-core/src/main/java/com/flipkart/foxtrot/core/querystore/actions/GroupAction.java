@@ -129,7 +129,7 @@ public class GroupAction extends Action<GroupRequest> {
         SearchRequestBuilder query;
         try {
             query = getConnection().getClient()
-                    .prepareSearch(ElasticsearchUtils.getIndices(parameter.getTable(), parameter))
+                    .prepareSearch(ElasticsearchUtils.getIndicesForSearch(parameter.getTable(), parameter))
                     .setIndicesOptions(Utils.indicesOptions());
             AbstractAggregationBuilder aggregation = buildAggregation();
             query.setQuery(new ElasticSearchQueryGenerator(FilterCombinerType.and)

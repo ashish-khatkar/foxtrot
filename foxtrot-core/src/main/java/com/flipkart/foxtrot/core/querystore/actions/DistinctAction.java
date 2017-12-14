@@ -110,7 +110,7 @@ public class DistinctAction extends Action<DistinctRequest> {
         SearchRequestBuilder query;
         try {
             query = getConnection().getClient()
-                    .prepareSearch(ElasticsearchUtils.getIndices(request.getTable(), request))
+                    .prepareSearch(ElasticsearchUtils.getIndicesForSearch(request.getTable(), request))
                     .setIndicesOptions(Utils.indicesOptions());
             TermsAggregationBuilder rootBuilder = null;
             TermsAggregationBuilder termsBuilder = null;

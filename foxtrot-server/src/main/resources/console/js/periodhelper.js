@@ -19,7 +19,7 @@ function timeValue(periodUnit, periodValue, selectedPeriodString) {
     var timestamp = new Date().getTime();
     if (selectedPeriodString === "custom" || !selectedPeriodString) {
         return {
-            field: "_timestamp",
+            field: "timestamp",
             operator: "last",
             duration: periodValue + periodUnit,
             currentTime: timestamp

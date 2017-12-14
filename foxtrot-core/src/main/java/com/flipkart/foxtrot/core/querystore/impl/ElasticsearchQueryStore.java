@@ -22,10 +22,12 @@ import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.FieldTypeMapping;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.core.common.RollOverConditions;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.parsers.ElasticsearchMappingParser;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +38,7 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.elasticsearch.action.admin.indices.rollover.RolloverResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -73,8 +76,10 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final DataStore dataStore;
     private final TableMetadataManager tableMetadataManager;
     private final ObjectMapper mapper;
+    private final IndexAliasManager indexAliasManager;
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
+                                   IndexAliasManager indexAliasManager,
                                    ElasticsearchConnection connection,
                                    DataStore dataStore,
                                    ObjectMapper mapper) {
@@ -82,6 +87,7 @@ public class ElasticsearchQueryStore implements QueryStore {
         this.dataStore = dataStore;
         this.tableMetadataManager = tableMetadataManager;
         this.mapper = mapper;
+        this.indexAliasManager = indexAliasManager;
     }
 
     @Override
@@ -105,12 +111,16 @@ public class ElasticsearchQueryStore implements QueryStore {
             final Table tableMeta = tableMetadataManager.get(table);
             final Document translatedDocument = dataStore.save(tableMeta, document);
             long timestamp = translatedDocument.getTimestamp();
+
+            String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
+            if (!indexAliasManager.exists(alias)) {
+                indexAliasManager.save(alias);
+            }
             connection.getClient()
                     .prepareIndex()
-                    .setIndex(ElasticsearchUtils.getCurrentIndex(table, timestamp))
+                    .setIndex(alias)
                     .setType(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setId(translatedDocument.getId())
-                    .setTimestamp(Long.toString(timestamp))
                     .setSource(convert(translatedDocument), XContentType.JSON)
                     .setWaitForActiveShards(ActiveShardCount.DEFAULT)
                     .execute()
@@ -143,12 +153,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                 if (dateTime.minus(timestamp).getMillis() < 0) {
                     continue;
                 }
-                final String index = ElasticsearchUtils.getCurrentIndex(table, timestamp);
+                String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
+                if (!indexAliasManager.exists(alias)) {
+                    indexAliasManager.save(alias);
+                }
                 IndexRequest indexRequest = new IndexRequest()
-                        .index(index)
+                        .index(alias)
                         .type(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                         .id(document.getId())
-                        .timestamp(Long.toString(timestamp))
                         .source(convert(document), XContentType.JSON);
                 bulkRequestBuilder.add(indexRequest);
             }
@@ -341,6 +353,41 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .get();
     }
 
+    /**
+     * This functions performs rollover for alias. If any single condition is matched, index will rollover and alias will point to new index.
+     * As of now ES Java API only supports max_age and max_docs conditions
+     * @param conditions
+     * @throws FoxtrotException
+     */
+    @Override
+    public void indexRollOver(final Map<String, Object> conditions) throws FoxtrotException {
+        List<String> indicesToRollover = indexAliasManager.get();
+        try {
+            long maxDocs = 1000000000L; // by default keeping max_docs as 1 billion docs
+            if (conditions.containsKey(RollOverConditions.MAX_DOCS.toString())) {
+                maxDocs = Long.parseLong(conditions.get(RollOverConditions.MAX_DOCS.toString()).toString());
+            }
+            for (String indexAlias : indicesToRollover) {
+                logger.info("Rolling index for alias {}", indexAlias);
+                RolloverResponse response = connection.getClient()
+                        .admin()
+                        .indices()
+                        .prepareRolloverIndex(indexAlias)
+                        .addMaxIndexDocsCondition(maxDocs)
+                        .execute()
+                        .get();
+
+                if (response.isRolledOver()) {
+                    logger.info("Index rolled for alias {}", indexAlias);
+                } else {
+                    logger.info("Index not rolled for alias {}", indexAlias);
+                }
+            }
+        } catch (Exception e) {
+            //TODO: create rollover foxtrot exception
+        }
+    }
+
     private String convert(Document translatedDocument) {
         JsonNode metaNode = mapper.valueToTree(translatedDocument.getMetadata());
         ObjectNode dataNode = translatedDocument.getData().deepCopy();
@@ -348,5 +395,6 @@ public class ElasticsearchQueryStore implements QueryStore {
         dataNode.put("timestamp", translatedDocument.getTimestamp());
         return dataNode.toString();
     }
+
 
 }

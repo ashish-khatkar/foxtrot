@@ -49,6 +49,8 @@ public class ElasticsearchUtils {
     public static final String DOCUMENT_META_ID_FIELD_NAME = String.format("%s.id", DOCUMENT_META_FIELD_NAME);
     public static String TABLENAME_PREFIX = "foxtrot";
     public static final String TABLENAME_POSTFIX = "table";
+    public static final String INDEX_ALIAS = "alias";
+    public static final String INITIAL_INDEX = "000001";
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
 
@@ -227,7 +229,9 @@ public class ElasticsearchUtils {
         }
 
         String indexPrefix = getIndexPrefix(table.getName());
-        String creationDateString = index.substring(index.indexOf(indexPrefix) + indexPrefix.length());
+        String creationDateStringWithId = index.substring(index.indexOf(indexPrefix) + indexPrefix.length());
+        int position = creationDateStringWithId.lastIndexOf("-");
+        String creationDateString = creationDateStringWithId.substring(0, position);
         DateTime creationDate = DATE_TIME_FORMATTER.parseDateTime(creationDateString);
         DateTime startTime = new DateTime(0L);
         DateTime endTime = new DateTime().minusDays(table.getTtl()).toDateMidnight().toDateTime();
@@ -246,5 +250,77 @@ public class ElasticsearchUtils {
 
     public static String getAllIndicesPattern() {
         return String.format("%s-*-%s-*", ElasticsearchUtils.TABLENAME_PREFIX, ElasticsearchUtils.TABLENAME_POSTFIX);
+    }
+
+    /**
+     * Removes -alias from the alias name to get starting for new index
+     * For ex : if alias is foxtrot-appName-table-12-12-2017-alias, corresponding initial index will be foxtrot-appName-table-12-12-2017-000001
+     * @param alias : Name of the alias
+     * @return string for the first index to which alias should point
+     */
+    public static String getIndexFromAlias(String alias) {
+        if (alias.contains(INDEX_ALIAS)) {
+            int position = alias.lastIndexOf(String.format("-%s", INDEX_ALIAS));
+            return String.format("%s-%s", alias.substring(0, position), INITIAL_INDEX);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param table : Name of the table
+     * @param timestamp : Timestamp
+     * @return string for the alias to which data should be written
+     */
+    public static String getAliasFromTimestamp(String table, long timestamp) {
+        String index = getCurrentIndex(table, timestamp);
+        return String.format("%s-%s", index, INDEX_ALIAS);
+    }
+
+    /**
+     *
+     * @param table : Name of the table
+     * @param request : ActionRequest
+     * @return array of string containing all the valid indices for the given request
+     * @throws Exception
+     */
+    public static String[] getIndicesForSearch(final String table, final ActionRequest request) throws Exception {
+        return getIndicesForSearch(table, request, new PeriodSelector(request.getFilters()).analyze());
+    }
+
+    /**
+     *
+     * @param table : Name of the table
+     * @param request : ActionRequest
+     * @param interval : time interval for which indices need to be fetched
+     * @return array of string cotaining all the valid indices for the given interval
+     */
+    @VisibleForTesting
+    public static String[] getIndicesForSearch(final String table, final ActionRequest request, final Interval interval) {
+        DateTime start = interval.getStart().toLocalDate().toDateTimeAtStartOfDay();
+        if (start.getYear() <= 1970) {
+            logger.warn("Request of type {} running on all indices", request.getClass().getSimpleName());
+            return new String[]{getIndices(table)};
+        }
+        List<String> indices = Lists.newArrayList();
+        final DateTime end = interval.getEnd().plusDays(1).toLocalDate().toDateTimeAtStartOfDay();
+        while (start.getMillis() < end.getMillis()) {
+            final String index = getIndicesFromTimestamp(table, start.getMillis());
+            indices.add(index);
+            start = start.plusDays(1);
+        }
+        logger.info("Request of type {} on indices: {}", request.getClass().getSimpleName(), indices);
+        return indices.toArray(new String[indices.size()]);
+    }
+
+    /**
+     * Index regex is : foxtrot-appName-{some date like 12-12-2017}-*
+     * @param table : Name of the table
+     * @param timestamp : timestamp
+     * @return index regex for given table and timestamp
+     */
+    public static String getIndicesFromTimestamp(String table, long timestamp) {
+        return String.format("%s-*", getCurrentIndex(table, timestamp));
     }
 }

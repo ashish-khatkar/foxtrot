@@ -122,7 +122,7 @@ public class TableMapStore implements MapStore<String, Table> {
                 }
                 bulkRequestBuilder.add(elasticsearchConnection.getClient()
                         .prepareIndex(TABLE_META_INDEX, TABLE_META_TYPE, mapEntry.getKey())
-                        .setSource(objectMapper.writeValueAsString(mapEntry.getValue())));
+                        .setSource(objectMapper.writeValueAsString(mapEntry.getValue()), XContentType.JSON));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Error bulk saving meta: ", e);
             }
