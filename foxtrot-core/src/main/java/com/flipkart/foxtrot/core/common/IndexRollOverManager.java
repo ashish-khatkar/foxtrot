@@ -23,7 +23,7 @@ public class IndexRollOverManager implements Managed {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         logger.info("Starting index rollover manager");
         if (config.isActive()) {
             logger.info("Scheduling index rollover job");
@@ -38,7 +38,7 @@ public class IndexRollOverManager implements Managed {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         logger.info("Stopping index rollover manager");
         timer.cancel();
         logger.info("Stopped index rollover manager");

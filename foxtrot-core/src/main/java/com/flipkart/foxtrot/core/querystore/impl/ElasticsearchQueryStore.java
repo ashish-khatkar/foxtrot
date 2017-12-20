@@ -48,6 +48,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.SearchHit;
@@ -371,11 +372,26 @@ public class ElasticsearchQueryStore implements QueryStore {
                         .indices()
                         .prepareRolloverIndex(indexAlias);
 
+                Settings.Builder aliasSettingsBuilder = null;
+
                 if (null != aliasConditions.getMaxDocs()) {
                     rolloverRequestBuilder.addMaxIndexDocsCondition(aliasConditions.getMaxDocs());
                 }
                 if (null != aliasConditions.getMaxAgeInDays()) {
                     rolloverRequestBuilder.addMaxIndexAgeCondition(new TimeValue(aliasConditions.getMaxAgeInDays(), TimeUnit.DAYS));
+                }
+                if (null != aliasConditions.getNoOfShards()) {
+                    aliasSettingsBuilder = Settings.builder();
+                    aliasSettingsBuilder.put("index.number_of_shards", aliasConditions.getNoOfShards());
+                }
+                if (null != aliasConditions.getNoOfReplicas()) {
+                    if (null == aliasSettingsBuilder) {
+                        aliasSettingsBuilder = Settings.builder();
+                    }
+                    aliasSettingsBuilder.put("index.number_of_replicas", aliasConditions.getNoOfReplicas());
+                }
+                if (null != aliasSettingsBuilder) {
+                    rolloverRequestBuilder.settings(aliasSettingsBuilder.build());
                 }
 
                 RolloverResponse response = rolloverRequestBuilder.execute().get();

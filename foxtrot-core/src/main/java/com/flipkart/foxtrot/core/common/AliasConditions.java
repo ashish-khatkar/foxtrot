@@ -20,6 +20,14 @@ public class AliasConditions {
     @JsonProperty("max_age")
     private Integer maxAgeInDays;
 
+    @Min(1)
+    @JsonProperty("no_of_shards")
+    private Integer noOfShards;
+
+    @Min(1)
+    @JsonProperty("no_of_replicas")
+    private Integer noOfReplicas;
+
     public AliasConditions() {
     }
 
@@ -37,5 +45,21 @@ public class AliasConditions {
 
     public void setMaxAgeInDays(Integer maxAgeInDays) {
         this.maxAgeInDays = maxAgeInDays;
+    }
+
+    public Integer getNoOfShards() {
+        return noOfShards;
+    }
+
+    public void setNoOfShards(Integer noOfShards) {
+        this.noOfShards = noOfShards;
+    }
+
+    public Integer getNoOfReplicas() {
+        return noOfReplicas;
+    }
+
+    public void setNoOfReplicas(Integer noOfReplicas) {
+        this.noOfReplicas = noOfReplicas;
     }
 }

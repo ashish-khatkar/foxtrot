@@ -1,7 +1,5 @@
 package com.flipkart.foxtrot.core.querystore.impl;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.core.util.MetricUtil;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,13 +39,9 @@ public class IndexAliasMapStore implements MapStore<String, String> {
     }
 
     private final ElasticsearchConnection elasticsearchConnection;
-    private final ObjectMapper objectMapper;
 
     public IndexAliasMapStore(ElasticsearchConnection elasticsearchConnection) {
         this.elasticsearchConnection = elasticsearchConnection;
-        this.objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     @Override
@@ -70,12 +64,26 @@ public class IndexAliasMapStore implements MapStore<String, String> {
 
     }
 
+    /**
+     *
+     * Load function is called when hazelcast can't find value corresponding to key and it tries to load it by calling load.
+     * This also gets called while we check containsKey on hazelcast map.
+     * Here we don't need to do anything as we are creating index and aliases by ourselves. We don't want hazelcast to do that for us.
+     * So just pass null from here.
+     *
+     */
     @Override
     public String load(String key) {
         logger.info("Load called for alias : {}", key);
         return null;
     }
 
+    /**
+     *
+     * LoadAll function is called at the init for hazelcast. It calls loadKeys which fetches all the existing aliases from the ES.
+     * Then hazelcast calls loadAll on those keys. Since for the corresponding keys aliases already exists we just convert the key array to map.
+     *
+     */
     @Override
     public Map<String, String> loadAll(Collection<String> keys) {
         logger.info("Load all called for alias map");

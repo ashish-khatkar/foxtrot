@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.Map;
 
 /**
  * Created by ashish.khatkar on 12/12/17.
@@ -12,11 +11,11 @@ import java.util.Map;
 public class IndexRollOverManagerConfig {
     @Min(3600)
     @JsonProperty("interval")
-    private int intervalInSeconds;
+    private int intervalInSeconds = 3600;
 
     @Min(1)
     @JsonProperty("initialDelay")
-    private int initialDelayInSeconds;
+    private int initialDelayInSeconds = 1;
 
     @NotNull
     private boolean active;
