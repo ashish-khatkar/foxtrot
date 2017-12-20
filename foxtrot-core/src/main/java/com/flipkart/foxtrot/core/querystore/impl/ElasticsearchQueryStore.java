@@ -372,7 +372,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                         .indices()
                         .prepareRolloverIndex(indexAlias);
 
-                Settings.Builder aliasSettingsBuilder = null;
+                Settings.Builder aliasSettingsBuilder = Settings.builder();
 
                 if (null != aliasConditions.getMaxDocs()) {
                     rolloverRequestBuilder.addMaxIndexDocsCondition(aliasConditions.getMaxDocs());
@@ -381,16 +381,12 @@ public class ElasticsearchQueryStore implements QueryStore {
                     rolloverRequestBuilder.addMaxIndexAgeCondition(new TimeValue(aliasConditions.getMaxAgeInDays(), TimeUnit.DAYS));
                 }
                 if (null != aliasConditions.getNoOfShards()) {
-                    aliasSettingsBuilder = Settings.builder();
                     aliasSettingsBuilder.put("index.number_of_shards", aliasConditions.getNoOfShards());
                 }
                 if (null != aliasConditions.getNoOfReplicas()) {
-                    if (null == aliasSettingsBuilder) {
-                        aliasSettingsBuilder = Settings.builder();
-                    }
                     aliasSettingsBuilder.put("index.number_of_replicas", aliasConditions.getNoOfReplicas());
                 }
-                if (null != aliasSettingsBuilder) {
+                if (!aliasSettingsBuilder.internalMap().isEmpty()) {
                     rolloverRequestBuilder.settings(aliasSettingsBuilder.build());
                 }
 
