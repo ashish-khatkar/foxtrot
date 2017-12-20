@@ -149,7 +149,7 @@ public class TrendAction extends Action<TrendRequest> {
         try {
             AbstractAggregationBuilder aggregationBuilder = buildAggregation(parameter);
             searchRequestBuilder = getConnection().getClient()
-                    .prepareSearch(ElasticsearchUtils.getIndices(parameter.getTable(), parameter))
+                    .prepareSearch(ElasticsearchUtils.getIndicesForSearch(parameter.getTable(), parameter))
                     .setIndicesOptions(Utils.indicesOptions())
                     .setQuery(new ElasticSearchQueryGenerator(FilterCombinerType.and).genFilter(parameter.getFilters()))
                     .setSize(0)

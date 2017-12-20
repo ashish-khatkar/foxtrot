@@ -659,7 +659,7 @@ public class FilterActionTest extends ActionTest {
         getQueryStore().save(TestUtils.TEST_TABLE_NAME, documents);
         for (Document document : documents) {
             getElasticsearchServer().getClient().admin().indices()
-                    .prepareRefresh(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()))
+                    .prepareRefresh(ElasticsearchUtils.getAliasFromTimestamp(TestUtils.TEST_TABLE_NAME, document.getTimestamp()))
                     .execute().actionGet();
         }
         GetIndexResponse response = getElasticsearchServer().getClient().admin().indices().getIndex(new GetIndexRequest()).actionGet();

@@ -95,7 +95,7 @@ public class CountAction extends Action<CountRequest> {
             SearchRequestBuilder query;
             try {
                 query = getConnection().getClient()
-                        .prepareSearch(ElasticsearchUtils.getIndices(parameter.getTable(), parameter))
+                        .prepareSearch(ElasticsearchUtils.getIndicesForSearch(parameter.getTable(), parameter))
                         .setIndicesOptions(Utils.indicesOptions())
                         .setSize(0)
                         .setQuery(new ElasticSearchQueryGenerator(FilterCombinerType.and)
@@ -121,7 +121,7 @@ public class CountAction extends Action<CountRequest> {
             SearchRequestBuilder requestBuilder;
             try {
                 requestBuilder = getConnection().getClient()
-                        .prepareSearch(ElasticsearchUtils.getIndices(parameter.getTable(), parameter))
+                        .prepareSearch(ElasticsearchUtils.getIndicesForSearch(parameter.getTable(), parameter))
                         .setIndicesOptions(Utils.indicesOptions())
                         .setSize(0)
                         .setQuery(new ElasticSearchQueryGenerator(FilterCombinerType.and).genFilter(parameter.getFilters()));

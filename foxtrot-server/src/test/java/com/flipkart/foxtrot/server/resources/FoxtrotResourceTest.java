@@ -13,6 +13,7 @@ import com.flipkart.foxtrot.core.cache.CacheManager;
 import com.flipkart.foxtrot.core.cache.impl.DistributedCacheFactory;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.querystore.QueryExecutor;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.querystore.actions.spi.AnalyticsLoader;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.*;
 public abstract class FoxtrotResourceTest {
 
     private TableMetadataManager tableMetadataManager;
+    private IndexAliasManager indexAliasManager;
     private MockElasticsearchServer elasticsearchServer;
     private HazelcastInstance hazelcastInstance;
     private QueryExecutor queryExecutor;
@@ -121,7 +123,15 @@ public abstract class FoxtrotResourceTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        queryStore = new ElasticsearchQueryStore(tableMetadataManager, elasticsearchConnection, dataStore, mapper);
+
+        indexAliasManager = Mockito.mock(IndexAliasManager.class);
+        try {
+            indexAliasManager.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        queryStore = new ElasticsearchQueryStore(tableMetadataManager, indexAliasManager, elasticsearchConnection, dataStore, mapper);
         queryStore = spy(queryStore);
 
         analyticsLoader = new AnalyticsLoader(tableMetadataManager, dataStore, queryStore, elasticsearchConnection, cacheManager, mapper);

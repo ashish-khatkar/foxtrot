@@ -6,6 +6,7 @@ import com.flipkart.foxtrot.core.TestUtils;
 import com.flipkart.foxtrot.core.cache.CacheManager;
 import com.flipkart.foxtrot.core.cache.impl.DistributedCacheFactory;
 import com.flipkart.foxtrot.core.datastore.DataStore;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.querystore.QueryExecutor;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.querystore.actions.spi.AnalyticsLoader;
@@ -58,8 +59,10 @@ public class ActionTest {
         doReturn(true).when(tableMetadataManager).exists(TestUtils.TEST_TABLE_NAME);
         doReturn(TestUtils.TEST_TABLE).when(tableMetadataManager).get(anyString());
 
+        IndexAliasManager indexAliasManager = Mockito.mock(IndexAliasManager.class);
+
         DataStore dataStore = TestUtils.getDataStore();
-        this.queryStore = new ElasticsearchQueryStore(tableMetadataManager, elasticsearchConnection, dataStore, mapper);
+        this.queryStore = new ElasticsearchQueryStore(tableMetadataManager, indexAliasManager, elasticsearchConnection, dataStore, mapper);
         CacheManager cacheManager = new CacheManager(new DistributedCacheFactory(hazelcastConnection, mapper));
         AnalyticsLoader analyticsLoader = new AnalyticsLoader(tableMetadataManager,
                 dataStore,

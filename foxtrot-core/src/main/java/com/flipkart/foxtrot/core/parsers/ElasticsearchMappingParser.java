@@ -46,6 +46,9 @@ public class ElasticsearchMappingParser {
 
     private Set<FieldTypeMapping> generateFieldMappings(String parentField, JsonNode jsonNode) {
         Set<FieldTypeMapping> fieldTypeMappings = new HashSet<FieldTypeMapping>();
+        if (null == jsonNode) {
+            return fieldTypeMappings;
+        }
         Iterator<Map.Entry<String, JsonNode>> iterator = jsonNode.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();

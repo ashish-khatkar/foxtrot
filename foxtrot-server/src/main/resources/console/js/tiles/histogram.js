@@ -114,7 +114,7 @@ Histogram.prototype.getQuery = function () {
             opcode: "histogram",
             table: table,
             filters: filters,
-            field: "_timestamp",
+            field: "timestamp",
             uniqueCountOn: this.uniqueCountOn && this.uniqueCountOn != "none" ? this.uniqueCountOn : null,
             period: periodFromWindow(this.periodUnit, this.customInterval())
         });

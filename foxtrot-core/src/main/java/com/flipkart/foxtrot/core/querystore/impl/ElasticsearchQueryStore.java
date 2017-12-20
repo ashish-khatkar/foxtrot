@@ -22,10 +22,12 @@ import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.FieldTypeMapping;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.parsers.ElasticsearchMappingParser;
+import com.flipkart.foxtrot.core.querystore.IndexAliasManager;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.table.TableMetadataManager;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +38,8 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.elasticsearch.action.admin.indices.rollover.RolloverRequestBuilder;
+import org.elasticsearch.action.admin.indices.rollover.RolloverResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -44,6 +48,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.SearchHit;
@@ -73,8 +78,10 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final DataStore dataStore;
     private final TableMetadataManager tableMetadataManager;
     private final ObjectMapper mapper;
+    private final IndexAliasManager indexAliasManager;
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
+                                   IndexAliasManager indexAliasManager,
                                    ElasticsearchConnection connection,
                                    DataStore dataStore,
                                    ObjectMapper mapper) {
@@ -82,6 +89,7 @@ public class ElasticsearchQueryStore implements QueryStore {
         this.dataStore = dataStore;
         this.tableMetadataManager = tableMetadataManager;
         this.mapper = mapper;
+        this.indexAliasManager = indexAliasManager;
     }
 
     @Override
@@ -105,12 +113,16 @@ public class ElasticsearchQueryStore implements QueryStore {
             final Table tableMeta = tableMetadataManager.get(table);
             final Document translatedDocument = dataStore.save(tableMeta, document);
             long timestamp = translatedDocument.getTimestamp();
+
+            String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
+            if (!indexAliasManager.aliasExists(alias)) {
+                indexAliasManager.saveAlias(alias);
+            }
             connection.getClient()
                     .prepareIndex()
-                    .setIndex(ElasticsearchUtils.getCurrentIndex(table, timestamp))
+                    .setIndex(alias)
                     .setType(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setId(translatedDocument.getId())
-                    .setTimestamp(Long.toString(timestamp))
                     .setSource(convert(translatedDocument), XContentType.JSON)
                     .setWaitForActiveShards(ActiveShardCount.DEFAULT)
                     .execute()
@@ -143,12 +155,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                 if (dateTime.minus(timestamp).getMillis() < 0) {
                     continue;
                 }
-                final String index = ElasticsearchUtils.getCurrentIndex(table, timestamp);
+                String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
+                if (!indexAliasManager.aliasExists(alias)) {
+                    indexAliasManager.saveAlias(alias);
+                }
                 IndexRequest indexRequest = new IndexRequest()
-                        .index(index)
+                        .index(alias)
                         .type(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                         .id(document.getId())
-                        .timestamp(Long.toString(timestamp))
                         .source(convert(document), XContentType.JSON);
                 bulkRequestBuilder.add(indexRequest);
             }
@@ -341,6 +355,54 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .get();
     }
 
+    /**
+     * This functions performs rollover for alias. If any single condition is matched, index will rollover and alias will point to new index.
+     * As of now ES Java API only supports max_age and max_docs conditions
+     * @param aliasConditions
+     * @throws FoxtrotException
+     */
+    @Override
+    public void indexRollOver(final AliasConditions aliasConditions) throws FoxtrotException {
+        List<String> indicesToRollover = indexAliasManager.getAllAliases();
+        try {
+            for (String indexAlias : indicesToRollover) {
+                logger.info("Rolling index for alias {}", indexAlias);
+                RolloverRequestBuilder rolloverRequestBuilder = connection.getClient()
+                        .admin()
+                        .indices()
+                        .prepareRolloverIndex(indexAlias);
+
+                Settings.Builder aliasSettingsBuilder = Settings.builder();
+
+                if (null != aliasConditions.getMaxDocs()) {
+                    rolloverRequestBuilder.addMaxIndexDocsCondition(aliasConditions.getMaxDocs());
+                }
+                if (null != aliasConditions.getMaxAgeInDays()) {
+                    rolloverRequestBuilder.addMaxIndexAgeCondition(new TimeValue(aliasConditions.getMaxAgeInDays(), TimeUnit.DAYS));
+                }
+                if (null != aliasConditions.getNoOfShards()) {
+                    aliasSettingsBuilder.put("index.number_of_shards", aliasConditions.getNoOfShards());
+                }
+                if (null != aliasConditions.getNoOfReplicas()) {
+                    aliasSettingsBuilder.put("index.number_of_replicas", aliasConditions.getNoOfReplicas());
+                }
+                if (!aliasSettingsBuilder.internalMap().isEmpty()) {
+                    rolloverRequestBuilder.settings(aliasSettingsBuilder.build());
+                }
+
+                RolloverResponse response = rolloverRequestBuilder.execute().get();
+
+                if (response.isRolledOver()) {
+                    logger.info("Index rolled for alias {}", indexAlias);
+                } else {
+                    logger.info("Index not rolled for alias {}", indexAlias);
+                }
+            }
+        } catch (Exception e) {
+            throw FoxtrotExceptions.createIndexRolloverException(indicesToRollover, e.getMessage());
+        }
+    }
+
     private String convert(Document translatedDocument) {
         JsonNode metaNode = mapper.valueToTree(translatedDocument.getMetadata());
         ObjectNode dataNode = translatedDocument.getData().deepCopy();
@@ -348,5 +410,6 @@ public class ElasticsearchQueryStore implements QueryStore {
         dataNode.put("timestamp", translatedDocument.getTimestamp());
         return dataNode.toString();
     }
+
 
 }

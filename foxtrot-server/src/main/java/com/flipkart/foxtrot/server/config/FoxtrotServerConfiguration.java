@@ -17,6 +17,7 @@ package com.flipkart.foxtrot.server.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.foxtrot.core.common.DataDeletionManagerConfig;
+import com.flipkart.foxtrot.core.common.IndexRollOverManagerConfig;
 import com.flipkart.foxtrot.core.datastore.impl.hbase.HbaseConfig;
 import com.flipkart.foxtrot.core.querystore.impl.ClusterConfig;
 import com.flipkart.foxtrot.core.querystore.impl.ElasticsearchConfig;
@@ -43,11 +44,16 @@ public class FoxtrotServerConfiguration extends Configuration {
     @JsonProperty("deletionconfig")
     private final DataDeletionManagerConfig deletionManagerConfig;
 
+    @Valid
+    @JsonProperty("indexRolloverConfig")
+    private final IndexRollOverManagerConfig indexRollOverManagerConfig;
+
     public FoxtrotServerConfiguration() {
         this.hbase = new HbaseConfig();
         this.elasticsearch = new ElasticsearchConfig();
         this.cluster = new ClusterConfig();
         this.deletionManagerConfig = new DataDeletionManagerConfig();
+        this.indexRollOverManagerConfig = new IndexRollOverManagerConfig();
     }
 
     public HbaseConfig getHbase() {
@@ -64,5 +70,9 @@ public class FoxtrotServerConfiguration extends Configuration {
 
     public DataDeletionManagerConfig getTableDataManagerConfig() {
         return deletionManagerConfig;
+    }
+
+    public IndexRollOverManagerConfig getIndexRollOverManagerConfig() {
+        return indexRollOverManagerConfig;
     }
 }

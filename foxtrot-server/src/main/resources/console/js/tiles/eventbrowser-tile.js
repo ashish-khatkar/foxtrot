@@ -76,7 +76,7 @@ EventBrowser.prototype.getQuery = function () {
         opcode: "query",
         table: this.tables.selectedTable.name,
         sort: {
-            field: "_timestamp",
+            field: "timestamp",
             order: "desc"
         },
         from: 0,

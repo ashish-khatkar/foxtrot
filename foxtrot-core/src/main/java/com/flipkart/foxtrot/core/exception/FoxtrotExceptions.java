@@ -80,4 +80,12 @@ public class FoxtrotExceptions {
     public static UnresolvableActionException createUnresolvableActionException(ActionRequest actionRequest) {
         return new UnresolvableActionException(actionRequest);
     }
+
+    public static IndexRolloverException createIndexRolloverException(List<String> aliases, String message) {
+        return new IndexRolloverException(aliases, message);
+    }
+
+    public static IndexCreationException createIndexCreationException(String indexName, String message) {
+        return new IndexCreationException(indexName, message);
+    }
 }
