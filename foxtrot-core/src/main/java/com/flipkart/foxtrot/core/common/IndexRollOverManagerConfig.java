@@ -1,5 +1,7 @@
 package com.flipkart.foxtrot.core.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
@@ -9,34 +11,37 @@ import java.util.Map;
  */
 public class IndexRollOverManagerConfig {
     @Min(3600)
-    private int interval;
+    @JsonProperty("interval")
+    private int intervalInSeconds;
 
     @Min(1)
-    private int initialDelay;
+    @JsonProperty("initialDelay")
+    private int initialDelayInSeconds;
 
     @NotNull
     private boolean active;
 
-    private Map<String, Object> conditions;
+    @JsonProperty("conditions")
+    private AliasConditions aliasConditions;
 
     public IndexRollOverManagerConfig() {
 
     }
 
-    public int getInterval() {
-        return interval;
+    public int getIntervalInSeconds() {
+        return intervalInSeconds;
     }
 
-    public void setInterval(int interval) {
-        this.interval = interval;
+    public void setIntervalInSeconds(int intervalInSeconds) {
+        this.intervalInSeconds = intervalInSeconds;
     }
 
-    public int getInitialDelay() {
-        return initialDelay;
+    public int getInitialDelayInSeconds() {
+        return initialDelayInSeconds;
     }
 
-    public void setInitialDelay(int initialDelay) {
-        this.initialDelay = initialDelay;
+    public void setInitialDelayInSeconds(int initialDelayInSeconds) {
+        this.initialDelayInSeconds = initialDelayInSeconds;
     }
 
     public boolean isActive() {
@@ -47,11 +52,11 @@ public class IndexRollOverManagerConfig {
         this.active = active;
     }
 
-    public Map<String, Object> getConditions() {
-        return conditions;
+    public AliasConditions getAliasConditions() {
+        return aliasConditions;
     }
 
-    public void setConditions(Map<String, Object> conditions) {
-        this.conditions = conditions;
+    public void setAliasConditions(AliasConditions aliasConditions) {
+        this.aliasConditions = aliasConditions;
     }
 }

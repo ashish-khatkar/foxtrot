@@ -17,6 +17,7 @@ package com.flipkart.foxtrot.core.querystore;
 
 import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
@@ -60,5 +61,5 @@ public interface QueryStore {
 
     IndicesStatsResponse getIndicesStats() throws ExecutionException, InterruptedException;
 
-    void indexRollOver(final Map<String, Object> conditions) throws FoxtrotException;
+    void indexRollOver(final AliasConditions conditions) throws FoxtrotException;
 }

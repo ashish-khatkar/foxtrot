@@ -2,28 +2,18 @@ package com.flipkart.foxtrot.core.querystore.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
+import com.flipkart.foxtrot.core.util.MetricUtil;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
 import com.hazelcast.core.MapStoreFactory;
-import org.elasticsearch.ResourceAlreadyExistsException;
-import org.elasticsearch.action.admin.indices.alias.Alias;
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.exists.AliasesExistResponse;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.support.ActiveShardCount;
-import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.cluster.metadata.AliasAction;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.codahale.metrics.Timer;
 
-import java.io.IOException;
 import java.util.*;
 
 
@@ -62,22 +52,12 @@ public class IndexAliasMapStore implements MapStore<String, String> {
 
     @Override
     public void store(String key, String value) {
-        logger.info("Store called for alias {}", key);
-        Set<String> existingAliases = getAllAliases();
-        if (!existingAliases.contains(key)) {
-            createIndexAndAlias(key);
-        }
+
     }
 
     @Override
     public void storeAll(Map<String, String> map) {
-        logger.info("Store all called for multiple aliases");
-        Set<String> existingAliases = getAllAliases();
-        for (String alias : map.keySet()) {
-            if (!existingAliases.contains(alias)) {
-                createIndexAndAlias(alias);
-            }
-        }
+
     }
 
     @Override
@@ -93,19 +73,6 @@ public class IndexAliasMapStore implements MapStore<String, String> {
     @Override
     public String load(String key) {
         logger.info("Load called for alias : {}", key);
-        try {
-            AliasesExistResponse response = elasticsearchConnection.getClient()
-                    .admin()
-                    .indices()
-                    .aliasesExist(new GetAliasesRequest(key))
-                    .actionGet();
-            if (response.exists()) {
-                return key;
-            }
-        } catch (Exception e) {
-            logger.info("Error in alias exists response {}", e.getMessage());
-            return null;
-        }
         return null;
     }
 
@@ -113,11 +80,8 @@ public class IndexAliasMapStore implements MapStore<String, String> {
     public Map<String, String> loadAll(Collection<String> keys) {
         logger.info("Load all called for alias map");
         Map<String, String> aliases = Maps.newHashMap();
-        Set<String> existingAliases = getAllAliases();
         for (String key : keys) {
-            if (existingAliases.contains(key)) {
-                aliases.put(key, key);
-            }
+            aliases.put(key, key);
         }
         logger.info("Loaded value count {}", aliases.size());
         return aliases;
@@ -126,13 +90,26 @@ public class IndexAliasMapStore implements MapStore<String, String> {
     @Override
     public Iterable<String> loadAllKeys() {
         logger.info("Load all keys called for aliases");
-        Set<String> aliases = getAllAliases();
-        logger.info("Loaded aliases. No of aliases : {}", aliases.size());
+        Set<String> aliases = null;
+        try {
+            aliases = getAllAliases();
+            logger.info("Loaded aliases. No of aliases : {}", aliases.size());
+        } catch (Exception e) {
+            MetricUtil.getInstance().markMeter(IndexAliasMapStore.class, "hazelcastInitFail");
+            logger.error("Hazelcast map initialization failed. Exiting");
+            System.exit(1);
+        }
         return aliases;
     }
 
-    private Set<String> getAllAliases() {
+    /**
+     * This function fetches all the existing aliases in th ES and returns them
+     *
+     * @return Set of aliases
+     */
+    private Set<String> getAllAliases() throws Exception {
         Set<String> aliases = Sets.newHashSet();
+        Timer.Context timer = MetricUtil.getInstance().startTimer(IndexAliasMapStore.class, "getAllAliases");
         try {
             GetAliasesResponse response = elasticsearchConnection.getClient()
                     .admin()
@@ -147,29 +124,11 @@ public class IndexAliasMapStore implements MapStore<String, String> {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error getting aliases from ES.", e.getCause());
+            throw new Exception("Error getting aliases from ES.", e.getCause());
+        } finally {
+            timer.stop();
         }
         return aliases;
     }
 
-    private void createIndexAndAlias(String aliasName) {
-        logger.info("Creating index and alias for aliasName {}", aliasName);
-        String indexName = ElasticsearchUtils.getIndexFromAlias(aliasName);
-        try {
-            CreateIndexResponse response = elasticsearchConnection.getClient()
-                    .admin()
-                    .indices()
-                    .create(new CreateIndexRequest(indexName).alias(new Alias(aliasName)))
-                    .actionGet();
-            if (!response.isAcknowledged()) {
-                logger.error("Error creating index {} with alias {}", indexName, aliasName);
-                //TODO: add create index exception here
-            }
-            logger.info("Index {} created with alias {}", indexName, aliasName);
-        } catch (ResourceAlreadyExistsException e) {
-            // should never come here
-            logger.error("Error creating index {} with alias {}", indexName, aliasName);
-            //TODO : add create index exception here
-        }
-    }
 }

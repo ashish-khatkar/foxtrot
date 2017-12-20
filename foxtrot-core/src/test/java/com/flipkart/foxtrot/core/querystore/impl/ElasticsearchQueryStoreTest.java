@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.common.*;
 import com.flipkart.foxtrot.core.MockElasticsearchServer;
 import com.flipkart.foxtrot.core.TestUtils;
+import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.ErrorCode;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
@@ -144,8 +145,8 @@ public class ElasticsearchQueryStoreTest {
         assertEquals("Alias should point to index", getResponse.getIndex(), index);
         assertEquals("Id should match requestId", getResponse.getId(), document.getId());
 
-        Map<String, Object> conditions = new HashMap<>();
-        conditions.put("max_docs", 1);
+        AliasConditions conditions = new AliasConditions();
+        conditions.setMaxDocs(1L);
         queryStore.indexRollOver(conditions);
 
         GetResponse response = elasticsearchServer.getClient()

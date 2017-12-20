@@ -59,26 +59,26 @@ public class DistributedIndexAliasManagerTest {
     @Test
     public void testSave() throws Exception {
         String alias = "test-alias";
-        distributedIndexAliasManager.save(alias);
-        assertTrue(distributedIndexAliasManager.exists(alias));
+        distributedIndexAliasManager.saveAlias(alias);
+        assertTrue(distributedIndexAliasManager.aliasExists(alias));
     }
 
     @Test
     public void testExists() throws Exception {
         String alias = "test-alias";
         String missingAlias = "missing-alias";
-        distributedIndexAliasManager.save(alias);
-        assertTrue(distributedIndexAliasManager.exists(alias));
-        assertFalse(distributedIndexAliasManager.exists(missingAlias));
+        distributedIndexAliasManager.saveAlias(alias);
+        assertTrue(distributedIndexAliasManager.aliasExists(alias));
+        assertFalse(distributedIndexAliasManager.aliasExists(missingAlias));
     }
 
     @Test
     public void testGet() throws Exception {
-        distributedIndexAliasManager.save("test-alias1");
-        distributedIndexAliasManager.save("test-alias2");
-        List<String> aliases = distributedIndexAliasManager.get();
-        assertTrue(aliases.contains("test-alias1"));
-        assertTrue(aliases.contains("test-alias2"));
+        distributedIndexAliasManager.saveAlias("test1-alias1");
+        distributedIndexAliasManager.saveAlias("test2-alias2");
+        List<String> aliases = distributedIndexAliasManager.getAllAliases();
+        assertTrue(aliases.contains("test1-alias1"));
+        assertTrue(aliases.contains("test2-alias2"));
         assertEquals(aliases.size(), 2);
     }
 }

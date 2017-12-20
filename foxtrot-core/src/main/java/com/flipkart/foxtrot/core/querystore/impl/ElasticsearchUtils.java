@@ -63,20 +63,16 @@ public class ElasticsearchUtils {
     }
 
     public static String getIndices(final String table) {
-        /*long currentTime = new Date().getTime();
-        String names[] = new String[30]; //TODO::USE TABLE METADATA
-        for(int i = 0 ; i < 30; i++) {
-            String postfix = new SimpleDateFormat("dd-M-yyyy").format(new Date(currentTime));
-            names[i] = String.format("%s-%s-%s", TABLENAME_PREFIX, table, postfix);
-        }*/
         return String.format("%s-%s-%s-*",
                 ElasticsearchUtils.TABLENAME_PREFIX, table, ElasticsearchUtils.TABLENAME_POSTFIX);
     }
 
+    @Deprecated
     public static String[] getIndices(final String table, final ActionRequest request) throws Exception {
         return getIndices(table, request, new PeriodSelector(request.getFilters()).analyze());
     }
 
+    @Deprecated
     @VisibleForTesting
     public static String[] getIndices(final String table, final ActionRequest request, final Interval interval) {
         DateTime start = interval.getStart().toLocalDate().toDateTimeAtStartOfDay();

@@ -27,9 +27,9 @@ public class IndexRollOverManager implements Managed {
         logger.info("Starting index rollover manager");
         if (config.isActive()) {
             logger.info("Scheduling index rollover job");
-            this.timer.scheduleAtFixedRate(new IndexRollOverTask(querystore, config.getConditions()),
-                    config.getInitialDelay() * 1000l,
-                    config.getInterval() * 1000l);
+            this.timer.scheduleAtFixedRate(new IndexRollOverTask(querystore, config.getAliasConditions()),
+                    config.getInitialDelayInSeconds() * 1000l,
+                    config.getIntervalInSeconds() * 1000l);
             logger.info("Scheduled index rollover job");
         } else {
             logger.info("Not scheduling index rollover job");

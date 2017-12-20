@@ -22,7 +22,7 @@ import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.FieldTypeMapping;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.common.TableFieldMapping;
-import com.flipkart.foxtrot.core.common.RollOverConditions;
+import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
@@ -38,6 +38,7 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.elasticsearch.action.admin.indices.rollover.RolloverRequestBuilder;
 import org.elasticsearch.action.admin.indices.rollover.RolloverResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -113,8 +114,8 @@ public class ElasticsearchQueryStore implements QueryStore {
             long timestamp = translatedDocument.getTimestamp();
 
             String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
-            if (!indexAliasManager.exists(alias)) {
-                indexAliasManager.save(alias);
+            if (!indexAliasManager.aliasExists(alias)) {
+                indexAliasManager.saveAlias(alias);
             }
             connection.getClient()
                     .prepareIndex()
@@ -154,8 +155,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                     continue;
                 }
                 String alias = ElasticsearchUtils.getAliasFromTimestamp(table, timestamp);
-                if (!indexAliasManager.exists(alias)) {
-                    indexAliasManager.save(alias);
+                if (!indexAliasManager.aliasExists(alias)) {
+                    indexAliasManager.saveAlias(alias);
                 }
                 IndexRequest indexRequest = new IndexRequest()
                         .index(alias)
@@ -356,26 +357,28 @@ public class ElasticsearchQueryStore implements QueryStore {
     /**
      * This functions performs rollover for alias. If any single condition is matched, index will rollover and alias will point to new index.
      * As of now ES Java API only supports max_age and max_docs conditions
-     * @param conditions
+     * @param aliasConditions
      * @throws FoxtrotException
      */
     @Override
-    public void indexRollOver(final Map<String, Object> conditions) throws FoxtrotException {
-        List<String> indicesToRollover = indexAliasManager.get();
+    public void indexRollOver(final AliasConditions aliasConditions) throws FoxtrotException {
+        List<String> indicesToRollover = indexAliasManager.getAllAliases();
         try {
-            long maxDocs = 1000000000L; // by default keeping max_docs as 1 billion docs
-            if (conditions.containsKey(RollOverConditions.MAX_DOCS.toString())) {
-                maxDocs = Long.parseLong(conditions.get(RollOverConditions.MAX_DOCS.toString()).toString());
-            }
             for (String indexAlias : indicesToRollover) {
                 logger.info("Rolling index for alias {}", indexAlias);
-                RolloverResponse response = connection.getClient()
+                RolloverRequestBuilder rolloverRequestBuilder = connection.getClient()
                         .admin()
                         .indices()
-                        .prepareRolloverIndex(indexAlias)
-                        .addMaxIndexDocsCondition(maxDocs)
-                        .execute()
-                        .get();
+                        .prepareRolloverIndex(indexAlias);
+
+                if (null != aliasConditions.getMaxDocs()) {
+                    rolloverRequestBuilder.addMaxIndexDocsCondition(aliasConditions.getMaxDocs());
+                }
+                if (null != aliasConditions.getMaxAgeInDays()) {
+                    rolloverRequestBuilder.addMaxIndexAgeCondition(new TimeValue(aliasConditions.getMaxAgeInDays(), TimeUnit.DAYS));
+                }
+
+                RolloverResponse response = rolloverRequestBuilder.execute().get();
 
                 if (response.isRolledOver()) {
                     logger.info("Index rolled for alias {}", indexAlias);
@@ -384,7 +387,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                 }
             }
         } catch (Exception e) {
-            //TODO: create rollover foxtrot exception
+            throw FoxtrotExceptions.createIndexRolloverException(indicesToRollover, e.getMessage());
         }
     }
 
