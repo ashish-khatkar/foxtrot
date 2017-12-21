@@ -184,6 +184,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                 for (int i = 0; i < responses.getItems().length; i++) {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     if (itemResponse.isFailed()) {
+                        MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "saveAll.failure." + table);
                         logger.error(String.format("Table : %s Failure Message : %s Document : %s", table,
                                 itemResponse.getFailureMessage(),
                                 mapper.writeValueAsString(documents.get(i))));

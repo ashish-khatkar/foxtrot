@@ -19,6 +19,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
+import com.flipkart.foxtrot.core.util.MetricUtil;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -58,6 +59,7 @@ public class DocumentResource {
     @Timed
     public Response saveDocuments(@PathParam("table") final String table,
                                   @Valid final List<Document> documents) throws FoxtrotException {
+        MetricUtil.getInstance().markMeter(DocumentResource.class, "saveDocuments.received.count", documents.size());
         queryStore.save(table, documents);
         return Response.created(URI.create("/" + table)).build();
     }

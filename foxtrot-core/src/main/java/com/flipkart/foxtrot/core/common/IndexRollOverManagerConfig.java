@@ -9,9 +9,9 @@ import javax.validation.constraints.NotNull;
  * Created by ashish.khatkar on 12/12/17.
  */
 public class IndexRollOverManagerConfig {
-    @Min(3600)
+    @Min(300)
     @JsonProperty("interval")
-    private int intervalInSeconds = 3600;
+    private int intervalInSeconds = 300;
 
     @Min(1)
     @JsonProperty("initialDelay")
