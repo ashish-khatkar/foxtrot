@@ -132,6 +132,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .execute()
                     .get(2, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "save.failure." + table + "." + e.getClass().getSimpleName());
             throw FoxtrotExceptions.createExecutionException(table, e);
         } finally {
             if (null != timer) {
