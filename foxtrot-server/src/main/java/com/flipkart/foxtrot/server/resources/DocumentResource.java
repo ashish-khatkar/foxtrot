@@ -20,6 +20,7 @@ import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.util.MetricUtil;
+import org.apache.http.HttpStatus;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -49,6 +50,10 @@ public class DocumentResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Timed
+    @Deprecated
+    /**
+     * Recommend to use bulk api.
+     */
     public Response saveDocument(@PathParam("table") final String table, @Valid final Document document)
             throws FoxtrotException {
         queryStore.save(table, document);
@@ -69,7 +74,7 @@ public class DocumentResource {
         } else {
             Map<String, Object> jsonResponse = new HashMap<>();
             jsonResponse.put("failedDocIds", failedDocuments);
-            return Response.status(207).entity(jsonResponse).build();
+            return Response.status(HttpStatus.SC_MULTI_STATUS).entity(jsonResponse).build();
         }
     }
 

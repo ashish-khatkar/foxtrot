@@ -102,6 +102,10 @@ public class ElasticsearchQueryStore implements QueryStore {
 
     @Override
     @Timed
+    @Deprecated
+    /**
+     * Recommend to use bulk save api.
+     */
     public void save(String table, Document document) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
         Timer.Context timer = null;
