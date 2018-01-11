@@ -143,9 +143,10 @@ public class ElasticsearchQueryStore implements QueryStore {
 
     @Override
     @Timed
-    public void save(String table, List<Document> documents) throws FoxtrotException {
+    public List<String> save(String table, List<Document> documents) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
         Timer.Context timer = null;
+        List<String> failedDocumentIds = new ArrayList<>();
         try {
             if (!tableMetadataManager.exists(table)) {
                 throw FoxtrotExceptions.createBadRequestException(table,
@@ -189,6 +190,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                         logger.error(String.format("Table : %s Failure Message : %s Document : %s", table,
                                 itemResponse.getFailureMessage(),
                                 mapper.writeValueAsString(documents.get(i))));
+
+                        failedDocumentIds.add(dataStore.getOriginalDocumentId(documents.get(i)));
                     }
                 }
             }
@@ -201,6 +204,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                 timer.stop();
             }
         }
+        return failedDocumentIds;
     }
 
     @Override
@@ -384,8 +388,9 @@ public class ElasticsearchQueryStore implements QueryStore {
     @Override
     public void indexRollOver(final AliasConditions aliasConditions) throws FoxtrotException {
         List<String> indicesToRollover = indexAliasManager.getAllAliases();
-        try {
-            for (String indexAlias : indicesToRollover) {
+        List<String> rolloverExceptionIndices = Lists.newArrayList();
+        for (String indexAlias : indicesToRollover) {
+            try {
                 logger.info("Rolling index for alias {}", indexAlias);
                 RolloverRequestBuilder rolloverRequestBuilder = connection.getClient()
                         .admin()
@@ -417,9 +422,12 @@ public class ElasticsearchQueryStore implements QueryStore {
                 } else {
                     logger.info("Index not rolled for alias {}", indexAlias);
                 }
+            } catch (Exception e) {
+                rolloverExceptionIndices.add(indexAlias);
             }
-        } catch (Exception e) {
-            throw FoxtrotExceptions.createIndexRolloverException(indicesToRollover, e.getMessage());
+        }
+        if (!rolloverExceptionIndices.isEmpty()) {
+            throw FoxtrotExceptions.createIndexRolloverException(rolloverExceptionIndices, "these indices threw exceptions");
         }
     }
 

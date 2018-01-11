@@ -41,4 +41,9 @@ public class IndexCreationException extends FoxtrotException {
         map.put("reason", reason);
         return map;
     }
+
+    @Override
+    public String toString() {
+        return String.format("indexName : %s\nreason : %s\n", indexName, reason);
+    }
 }

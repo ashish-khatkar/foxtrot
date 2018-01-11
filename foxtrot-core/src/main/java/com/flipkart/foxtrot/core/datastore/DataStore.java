@@ -36,4 +36,6 @@ public interface DataStore {
     Document get(final Table table, final String id) throws FoxtrotException;
 
     List<Document> getAll(final Table table, final List<String> ids) throws FoxtrotException;
+
+    String getOriginalDocumentId(Document inDocument);
 }

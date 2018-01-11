@@ -27,7 +27,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -56,12 +58,19 @@ public class DocumentResource {
     @POST
     @Path("/bulk")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Timed
     public Response saveDocuments(@PathParam("table") final String table,
                                   @Valid final List<Document> documents) throws FoxtrotException {
         MetricUtil.getInstance().markMeter(DocumentResource.class, "saveDocuments.received.count", documents.size());
-        queryStore.save(table, documents);
-        return Response.created(URI.create("/" + table)).build();
+        List<String> failedDocuments = queryStore.save(table, documents);
+        if (failedDocuments.isEmpty()) {
+            return Response.created(URI.create("/" + table)).build();
+        } else {
+            Map<String, Object> jsonResponse = new HashMap<>();
+            jsonResponse.put("failedDocIds", failedDocuments);
+            return Response.status(207).entity(jsonResponse).build();
+        }
     }
 
     @GET
