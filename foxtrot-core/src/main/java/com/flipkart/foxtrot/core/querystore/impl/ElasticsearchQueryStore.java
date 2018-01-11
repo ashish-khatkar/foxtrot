@@ -132,6 +132,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .execute()
                     .get(2, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "save.failure." + table + "." + e.getClass().getSimpleName());
             throw FoxtrotExceptions.createExecutionException(table, e);
         } finally {
             if (null != timer) {
@@ -184,6 +185,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                 for (int i = 0; i < responses.getItems().length; i++) {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     if (itemResponse.isFailed()) {
+                        MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "saveAll.failure." + table);
                         logger.error(String.format("Table : %s Failure Message : %s Document : %s", table,
                                 itemResponse.getFailureMessage(),
                                 mapper.writeValueAsString(documents.get(i))));

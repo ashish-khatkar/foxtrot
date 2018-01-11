@@ -84,6 +84,18 @@ public class MetricUtil {
         String name = metrics.name(cls, meterName + ".meter");
         metrics.meter(name).mark();
     }
+
+    /**
+     * mark the meter metrics. It measures rate of request. and stores the count
+     *
+     * @param cls
+     * @param meterName
+     * @param count
+     */
+    public void markMeter(Class cls, String meterName, int count) {
+        String name = metrics.name(cls, meterName + ".meter");
+        metrics.meter(name).mark(count);
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
