@@ -33,7 +33,7 @@ public class DocumentTranslator {
             this.keyDistributor = new IdentityKeyDistributor();
             this.rawKeyVersion = "1.0";
         } else if (hbaseConfig.getRawKeyVersion().equalsIgnoreCase("2.0")) {
-            this.keyDistributor = new RowKeyDistributorByHashPrefix(new RowKeyDistributorByHashPrefix.OneByteSimpleHash(32));
+            this.keyDistributor = new RowKeyDistributorByHashPrefix(new MurmurHash(256, 1));
             this.rawKeyVersion = "2.0";
         } else {
             throw new IllegalArgumentException(String.format("rawKeyVersion not supported version=[%s]", hbaseConfig.getRawKeyVersion()));

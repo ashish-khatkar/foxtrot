@@ -286,4 +286,14 @@ public class HBaseDataStore implements DataStore {
                 .addColumn(COLUMN_FAMILY, TIMESTAMP_FIELD_NAME, Bytes.toBytes(document.getTimestamp()));
     }
 
+    /**
+     * This function returns id of the original document received by foxtrot corresponding to current translated document.
+     *
+     * @param inDocument
+     * @return
+     */
+    public String getOriginalDocumentId(Document inDocument) {
+        return translator.translateBack(inDocument).getId();
+    }
+
 }

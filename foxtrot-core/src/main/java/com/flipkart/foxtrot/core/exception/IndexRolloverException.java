@@ -42,4 +42,9 @@ public class IndexRolloverException extends FoxtrotException {
         map.put("reason", reason);
         return map;
     }
+
+    @Override
+    public String toString() {
+        return String.format("aliases : %s\n reason : %s\n", String.join(", ", aliases), reason);
+    }
 }
