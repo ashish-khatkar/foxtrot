@@ -128,15 +128,18 @@ public class HBaseDataStore implements DataStore {
                 Document document = documents.get(i);
                 if (document == null) {
                     errorMessages.add("null document at index - " + i);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount");
                     continue;
                 }
                 if (document.getId() == null || document.getId().trim().isEmpty()) {
                     errorMessages.add("null/empty document id at index - " + i);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount");
                     continue;
                 }
 
                 if (document.getData() == null) {
                     errorMessages.add("null document data at index - " + i);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount");
                     continue;
                 }
                 Document translatedDocument = translator.translate(table, document);
@@ -153,6 +156,7 @@ public class HBaseDataStore implements DataStore {
         org.apache.hadoop.hbase.client.Table hTable = null;
         Timer.Context timer = null;
         try {
+            MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase", puts.size());
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk");
             hTable.put(puts);

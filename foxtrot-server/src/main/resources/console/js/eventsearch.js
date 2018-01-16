@@ -76,6 +76,7 @@ var opTable = new function() {
     this.ops["DOUBLE"] = ["equals", "not_equals", "less_than", "less_equal", "greater_than", "greater_equal", "between"];
     this.ops["BOOLEAN"] = ["equals", "not_equals"];
     this.ops["STRING"] = ["equals", "not_equals", "contains"];
+    this.ops["KEYWORD"] = ["equals", "not_equals", "contains"];
 };
 
 function FilterSection(filterId, tables) {
