@@ -17,6 +17,7 @@ package com.flipkart.foxtrot.core.querystore;
 
 import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
@@ -34,7 +35,12 @@ import java.util.concurrent.ExecutionException;
  */
 public interface QueryStore {
 
-    void initializeTable(final String table) throws FoxtrotException;
+    /**
+     * Recommended to use this.
+     * Function to create foxtrot table with mappings provided by app
+     *
+     */
+    void initializeTable(final TableV2 table) throws FoxtrotException;
 
     void save(final String table, final Document document) throws FoxtrotException;
 

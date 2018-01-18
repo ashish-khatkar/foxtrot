@@ -19,10 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.flipkart.foxtrot.common.Document;
-import com.flipkart.foxtrot.common.FieldTypeMapping;
-import com.flipkart.foxtrot.common.Table;
-import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.*;
 import com.flipkart.foxtrot.core.common.AliasConditions;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
@@ -43,6 +40,8 @@ import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.rollover.RolloverRequestBuilder;
 import org.elasticsearch.action.admin.indices.rollover.RolloverResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -52,7 +51,7 @@ import org.elasticsearch.action.support.ActiveShardCount;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.search.SearchHit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -92,12 +91,6 @@ public class ElasticsearchQueryStore implements QueryStore {
         this.tableMetadataManager = tableMetadataManager;
         this.mapper = mapper;
         this.indexAliasManager = indexAliasManager;
-    }
-
-    @Override
-    @Timed
-    public void initializeTable(String table) throws FoxtrotException {
-        // Nothing needs to be done here since indexes are created at runtime in elasticsearch
     }
 
     @Override
@@ -443,5 +436,74 @@ public class ElasticsearchQueryStore implements QueryStore {
         return dataNode.toString();
     }
 
+    /**
+     * This function puts template for a given table so that indices can use this template while indexing
+     * @param table : TableV2 object containing all information related to templates for table
+     * @throws FoxtrotException
+     */
+    @Override
+    @Timed
+    public void initializeTable(TableV2 table) throws FoxtrotException {
+        logger.info("Starting template initialization for table {}", table.getTable().getName());
+
+        String tableName = table.getTable().getName();
+        PutIndexTemplateRequest putIndexTemplateRequest = getFoxtrotTableTemplateMappings(tableName, table.getTableTemplate());
+        PutIndexTemplateResponse response = connection.getClient()
+                .admin()
+                .indices()
+                .putTemplate(putIndexTemplateRequest)
+                .actionGet();
+        if (!response.isAcknowledged()) {
+            throw FoxtrotExceptions.createTableInitializationException(
+                    table.getTable(),
+                    "Template initialization failed. Check settings and mappings"
+            );
+        }
+
+        logger.info("Template initialization finished for table {}", tableName);
+    }
+
+    /**
+     * This function returns the PutIndexTemplateRequest for a given table.
+     * For ex : if table name is bro template created will be : template_foxtrot_bro_mappings
+     * This mapping will be applied to all indices with names of type foxtrot-bro--*
+     * @param table : Table name
+     * @param indexTemplate : index template containing settings and mappings that need to be put in template
+     * @return : PutIndexTemplateRequest object
+     * @throws FoxtrotException
+     */
+    private PutIndexTemplateRequest getFoxtrotTableTemplateMappings(String table, IndexTemplate indexTemplate) throws FoxtrotException {
+        Object settings = indexTemplate.getSettings();
+
+        Settings templateSettings = Settings.builder()
+                .put(settings)
+                .build();
+
+        String mappings;
+        try {
+            mappings = mapper.writeValueAsString(indexTemplate.getMappings());
+        } catch (JsonProcessingException e) {
+            logger.error("Json exception thrown in putIndexTemplateRequest by mapper : ", e.getMessage());
+            throw FoxtrotExceptions.createBadRequestException(table,
+                    String.format("Template initialization failed for table - %s due to json exception while parsing mappings.", table));
+        }
+        XContentBuilder templateMappings;
+        try {
+            XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+                    .createParser(NamedXContentRegistry.EMPTY, mappings);
+
+            templateMappings = XContentFactory.jsonBuilder().copyCurrentStructure(parser);
+        } catch (Exception e) {
+            logger.error("Exception thrown in putIndexTemplateRequest : ", e.getMessage());
+            throw FoxtrotExceptions.createBadRequestException(table,
+                    String.format("Template initialization failed for table - %s", table));
+        }
+
+        return new PutIndexTemplateRequest()
+                .name(String.format("template_foxtrot_%s_mappings", table))
+                .template(String.format("foxtrot-%s-*", table))
+                .settings(templateSettings)
+                .mapping(ElasticsearchUtils.DOCUMENT_TYPE_NAME, templateMappings);
+    }
 
 }

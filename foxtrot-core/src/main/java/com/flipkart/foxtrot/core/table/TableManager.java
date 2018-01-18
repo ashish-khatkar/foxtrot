@@ -1,6 +1,7 @@
 package com.flipkart.foxtrot.core.table;
 
 import com.flipkart.foxtrot.common.Table;
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface TableManager {
 
-    void save(Table table) throws FoxtrotException;
+    void save(TableV2 tableV2) throws FoxtrotException;
 
     Table get(String name) throws FoxtrotException;
 

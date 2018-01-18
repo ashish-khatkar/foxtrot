@@ -18,6 +18,7 @@ package com.flipkart.foxtrot.server.resources;
 import com.flipkart.foxtrot.common.FieldType;
 import com.flipkart.foxtrot.common.FieldTypeMapping;
 import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.core.TestUtils;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.table.impl.FoxtrotTableManager;
@@ -109,7 +110,7 @@ public class TableFieldMappingResourceTest extends FoxtrotResourceTest {
 
     @Test
     public void getAllFields() throws Exception {
-        doNothing().when(getQueryStore()).initializeTable(any(String.class));
+        doNothing().when(getQueryStore()).initializeTable(any(TableV2.class));
 
         getQueryStore().save(TestUtils.TEST_TABLE_NAME, TestUtils.getMappingDocuments(getMapper()));
         Thread.sleep(500);

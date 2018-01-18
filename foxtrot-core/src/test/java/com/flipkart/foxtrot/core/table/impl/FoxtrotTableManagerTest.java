@@ -1,6 +1,7 @@
 package com.flipkart.foxtrot.core.table.impl;
 
 import com.flipkart.foxtrot.common.Table;
+import com.flipkart.foxtrot.common.TableV2;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.ErrorCode;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
@@ -41,12 +42,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableNullName() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName(null);
             table.setTtl(60);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.INVALID_REQUEST, e.getCode());
@@ -57,12 +60,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableEmptyName() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName(" ");
             table.setTtl(60);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.INVALID_REQUEST, e.getCode());
@@ -73,9 +78,11 @@ public class FoxtrotTableManagerTest {
     public void saveNullTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
-            tableManager.save(null);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(null);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.INVALID_REQUEST, e.getCode());
@@ -86,12 +93,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableInvalidTtl() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName("abcd");
             table.setTtl(0);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.INVALID_REQUEST, e.getCode());
@@ -102,24 +111,28 @@ public class FoxtrotTableManagerTest {
     public void saveTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         Table table = new Table();
         table.setName("abcd");
         table.setTtl(10);
-        tableManager.save(table);
+        TableV2 tableV2 = new TableV2();
+        tableV2.setTable(table);
+        tableManager.save(tableV2);
     }
 
     @Test
     public void saveExistingTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(true).when(metadataManager).exists(any(String.class));
         try {
             Table table = new Table();
             table.setName("abcd");
             table.setTtl(10);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.TABLE_ALREADY_EXISTS, e.getCode());
@@ -130,12 +143,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableQueryStoreFailed() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doThrow(FoxtrotExceptions.createExecutionException("dummy", new IOException())).when(queryStore).initializeTable(any(String.class));
+        doThrow(FoxtrotExceptions.createExecutionException("dummy", new IOException())).when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName("abcd");
             table.setTtl(10);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.STORE_EXECUTION_ERROR, e.getCode());
@@ -146,12 +161,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableDataStoreFailed() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doThrow(FoxtrotExceptions.createExecutionException("dummy", new IOException())).when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName("abcd");
             table.setTtl(10);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.STORE_EXECUTION_ERROR, e.getCode());
@@ -162,12 +179,14 @@ public class FoxtrotTableManagerTest {
     public void saveTableDataStoreNoTableFound() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doThrow(FoxtrotExceptions.createTableMissingException("Dummy")).when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         try {
             Table table = new Table();
             table.setName("abcd");
             table.setTtl(10);
-            tableManager.save(table);
+            TableV2 tableV2 = new TableV2();
+            tableV2.setTable(table);
+            tableManager.save(tableV2);
             fail();
         } catch (FoxtrotException e) {
             assertEquals(ErrorCode.TABLE_NOT_FOUND, e.getCode());
@@ -178,7 +197,7 @@ public class FoxtrotTableManagerTest {
     public void updateTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(true).when(metadataManager).exists(anyString());
         Table table = new Table();
         table.setName("abcd");
@@ -190,7 +209,7 @@ public class FoxtrotTableManagerTest {
     public void updateNonExistingTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(false).when(metadataManager).exists(anyString());
         try {
             Table table = new Table();
@@ -207,7 +226,7 @@ public class FoxtrotTableManagerTest {
     public void updateNullTable() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(false).when(metadataManager).exists(anyString());
         try {
             tableManager.update(null);
@@ -221,7 +240,7 @@ public class FoxtrotTableManagerTest {
     public void updateTableNullName() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(false).when(metadataManager).exists(anyString());
         try {
             Table table = new Table();
@@ -238,7 +257,7 @@ public class FoxtrotTableManagerTest {
     public void updateTableEmptyName() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(false).when(metadataManager).exists(anyString());
         try {
             Table table = new Table();
@@ -255,7 +274,7 @@ public class FoxtrotTableManagerTest {
     public void updateTableInvalidTtl() throws Exception {
         doNothing().when(metadataManager).save(any(Table.class));
         doNothing().when(dataStore).initializeTable(any(Table.class));
-        doNothing().when(queryStore).initializeTable(any(String.class));
+        doNothing().when(queryStore).initializeTable(any(TableV2.class));
         doReturn(false).when(metadataManager).exists(anyString());
         try {
             Table table = new Table();
