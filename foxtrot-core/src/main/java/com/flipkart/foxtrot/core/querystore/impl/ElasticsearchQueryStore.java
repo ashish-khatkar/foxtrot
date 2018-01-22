@@ -102,6 +102,7 @@ public class ElasticsearchQueryStore implements QueryStore {
     public void save(String table, Document document) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         try {
             if (!tableMetadataManager.exists(table)) {
                 throw FoxtrotExceptions.createBadRequestException(table,
@@ -118,7 +119,14 @@ public class ElasticsearchQueryStore implements QueryStore {
             if (!indexAliasManager.aliasExists(alias)) {
                 indexAliasManager.saveAlias(alias);
             }
+            /**
+             * Global metrics
+             */
             timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "save");
+            /**
+             * App level metrics
+             */
+            timerApp = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "save." + table);
             connection.getClient()
                     .prepareIndex()
                     .setIndex(alias)
@@ -135,6 +143,9 @@ public class ElasticsearchQueryStore implements QueryStore {
             if (null != timer) {
                 timer.stop();
             }
+            if (null != timerApp) {
+                timerApp.stop();
+            }
         }
     }
 
@@ -143,6 +154,7 @@ public class ElasticsearchQueryStore implements QueryStore {
     public List<String> save(String table, List<Document> documents) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         List<String> failedDocumentIds = new ArrayList<>();
         try {
             if (!tableMetadataManager.exists(table)) {
@@ -175,7 +187,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0) {
+                /**
+                 * Global metrics
+                 */
                 timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "bulkSave");
+                /**
+                 * App level metrics
+                 */
+                timerApp = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "bulkSave." + table);
                 BulkResponse responses = bulkRequestBuilder
                         .setWaitForActiveShards(ActiveShardCount.DEFAULT)
                         .execute()
@@ -183,7 +202,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                 for (int i = 0; i < responses.getItems().length; i++) {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     if (itemResponse.isFailed()) {
+                        /**
+                         * App level metrics
+                         */
                         MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "saveAll.failure." + table);
+                        /**
+                         * Global metrics
+                         */
+                        MetricUtil.getInstance().markMeter(ElasticsearchQueryStore.class, "saveAll.failure");
                         logger.error(String.format("Table : %s Failure Message : %s Document : %s", table,
                                 itemResponse.getFailureMessage(),
                                 mapper.writeValueAsString(documents.get(i))));
@@ -200,6 +226,9 @@ public class ElasticsearchQueryStore implements QueryStore {
             if (null != timer) {
                 timer.stop();
             }
+            if (null != timerApp) {
+                timerApp.stop();
+            }
         }
         return failedDocumentIds;
     }
@@ -215,7 +244,14 @@ public class ElasticsearchQueryStore implements QueryStore {
         }
         fxTable = tableMetadataManager.get(table);
         String lookupKey;
+        /**
+         * Global metrics
+         */
         Timer.Context timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "get");
+        /**
+         * App level metrics
+         */
+        Timer.Context timerApp = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "get." + table);
         SearchResponse searchResponse = connection.getClient()
                 .prepareSearch(ElasticsearchUtils.getIndices(table))
                 .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
@@ -225,6 +261,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                 .execute()
                 .actionGet();
         timer.stop();
+        timerApp.stop();
         if (searchResponse.getHits().getTotalHits() == 0) {
             logger.warn("Going into compatibility mode, looks using passed in ID as the data store id: {}", id);
             lookupKey = id;
@@ -253,7 +290,14 @@ public class ElasticsearchQueryStore implements QueryStore {
             rowKeys.put(id, id);
         }
         if (!bypassMetalookup) {
+            /**
+             * Global metrics
+             */
             Timer.Context timer = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "getBulk");
+            /**
+             * App level metrics
+             */
+            Timer.Context timerApp = MetricUtil.getInstance().startTimer(ElasticsearchQueryStore.class, "getBulk." + table);
             SearchResponse response = connection.getClient().prepareSearch(ElasticsearchUtils.getIndices(table))
                     .setTypes(ElasticsearchUtils.DOCUMENT_TYPE_NAME)
                     .setQuery(boolQuery().filter(termsQuery(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME, ids.toArray(new String[ids.size()]))))
@@ -263,6 +307,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .execute()
                     .actionGet();
             timer.stop();
+            timerApp.stop();
             for (SearchHit hit : response.getHits()) {
                 final String id = hit.getFields().get(ElasticsearchUtils.DOCUMENT_META_ID_FIELD_NAME).getValue().toString();
                 rowKeys.put(id, hit.getId());
