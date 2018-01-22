@@ -88,4 +88,8 @@ public class FoxtrotExceptions {
     public static IndexCreationException createIndexCreationException(String indexName, String message) {
         return new IndexCreationException(indexName, message);
     }
+
+    public static IndexTemplateUpdationException createIndexTemplateUpdationException(String tableName, String message) {
+        return new IndexTemplateUpdationException(tableName, message);
+    }
 }

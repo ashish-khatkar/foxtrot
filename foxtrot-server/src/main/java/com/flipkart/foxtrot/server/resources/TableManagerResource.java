@@ -16,7 +16,8 @@
 package com.flipkart.foxtrot.server.resources;
 
 import com.flipkart.foxtrot.common.Table;
-import com.flipkart.foxtrot.common.TableV2;
+import com.flipkart.foxtrot.common.TableCreationRequest;
+import com.flipkart.foxtrot.common.TableUpdationRequest;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.querystore.impl.ElasticsearchUtils;
 import com.flipkart.foxtrot.core.table.TableManager;
@@ -38,10 +39,10 @@ public class TableManagerResource {
     }
 
     @POST
-    public Response save(@Valid final TableV2 table) throws FoxtrotException {
-        table.getTable().setName(ElasticsearchUtils.getValidTableName(table.getTable().getName()));
-        tableManager.save(table);
-        return Response.ok(table).build();
+    public Response save(@Valid final TableCreationRequest tableCreationRequest) throws FoxtrotException {
+        tableCreationRequest.getTable().setName(ElasticsearchUtils.getValidTableName(tableCreationRequest.getTable().getName()));
+        tableManager.save(tableCreationRequest);
+        return Response.ok(tableCreationRequest).build();
     }
 
     @GET
@@ -55,9 +56,8 @@ public class TableManagerResource {
     @PUT
     @Path("/{name}")
     public Response get(@PathParam("name") final String name,
-                        @Valid final Table table) throws FoxtrotException {
-        table.setName(name);
-        tableManager.update(table);
+                        @Valid final TableUpdationRequest tableUpdationRequest) throws FoxtrotException {
+        tableManager.update(tableUpdationRequest);
         return Response.ok().build();
     }
 

@@ -53,6 +53,8 @@ public class ElasticsearchUtils {
     public static final String INITIAL_INDEX = "000001";
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
+    public static final String TEMPLATE_NAME_FORMAT = "template_foxtrot_%s_mappings";
+    public static final String TEMPLATE_MATCH_REGEX = "foxtrot-%s-*";
 
     public static void setTableNamePrefix(ElasticsearchConfig config) {
         ElasticsearchUtils.TABLENAME_PREFIX = config.getTableNamePrefix();

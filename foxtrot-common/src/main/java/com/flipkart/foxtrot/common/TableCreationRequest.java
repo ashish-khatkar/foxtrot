@@ -5,7 +5,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by ashish.khatkar on 18/01/18.
  */
-public class TableV2 {
+public class TableCreationRequest {
 
     @NotNull
     private Table table;
@@ -13,10 +13,10 @@ public class TableV2 {
     @NotNull
     private IndexTemplate tableTemplate;
 
-    public TableV2() {
+    public TableCreationRequest() {
     }
 
-    public TableV2(Table table, IndexTemplate tableTemplate) {
+    public TableCreationRequest(Table table, IndexTemplate tableTemplate) {
         this.table = table;
         this.tableTemplate = tableTemplate;
     }
@@ -39,7 +39,7 @@ public class TableV2 {
 
     @Override
     public String toString() {
-        return "TableV2{" +
+        return "TableCreationRequest{" +
                 "table=" + table.toString() +
                 ", tableTemplate=" + tableTemplate.toString() +
                 '}';

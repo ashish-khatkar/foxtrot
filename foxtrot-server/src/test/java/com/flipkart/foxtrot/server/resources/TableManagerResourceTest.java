@@ -17,7 +17,7 @@ package com.flipkart.foxtrot.server.resources;
 
 import com.flipkart.foxtrot.common.IndexTemplate;
 import com.flipkart.foxtrot.common.Table;
-import com.flipkart.foxtrot.common.TableV2;
+import com.flipkart.foxtrot.common.TableCreationRequest;
 import com.flipkart.foxtrot.core.TestUtils;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.table.TableManager;
@@ -66,7 +66,7 @@ public class TableManagerResourceTest extends FoxtrotResourceTest {
     @Test
     public void testSave() throws Exception {
         doNothing().when(getDataStore()).initializeTable(any(Table.class));
-        doNothing().when(getQueryStore()).initializeTable(any(TableV2.class));
+        doNothing().when(getQueryStore()).initializeTable(any(TableCreationRequest.class));
 
         Table table = new Table(TestUtils.TEST_TABLE_NAME, 30);
         Entity<Table> tableEntity = Entity.json(table);
@@ -99,13 +99,13 @@ public class TableManagerResourceTest extends FoxtrotResourceTest {
     @Test
     public void testSaveBackendError() throws Exception {
         Table table = new Table(UUID.randomUUID().toString(), 30);
-        TableV2 tableV2 = new TableV2();
+        TableCreationRequest tableCreationRequest = new TableCreationRequest();
         Map<String, Object> dummyMap = new HashMap<>();
         dummyMap.put("dummy", "dummy");
-        tableV2.setTable(table);
-        tableV2.setTableTemplate(new IndexTemplate(dummyMap, dummyMap));
-        Entity<TableV2> tableEntity = Entity.json(tableV2);
-        doThrow(FoxtrotExceptions.createExecutionException("dummy", new IOException())).when(tableManager).save(Matchers.<TableV2>any());
+        tableCreationRequest.setTable(table);
+        tableCreationRequest.setTableTemplate(new IndexTemplate(dummyMap, dummyMap));
+        Entity<TableCreationRequest> tableEntity = Entity.json(tableCreationRequest);
+        doThrow(FoxtrotExceptions.createExecutionException("dummy", new IOException())).when(tableManager).save(Matchers.<TableCreationRequest>any());
         Response response = resources.client().target("/v1/tables").request().post(tableEntity);
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
         reset(tableManager);
@@ -124,12 +124,12 @@ public class TableManagerResourceTest extends FoxtrotResourceTest {
     @Test
     public void testGet() throws Exception {
         doNothing().when(getDataStore()).initializeTable(any(Table.class));
-        doNothing().when(getQueryStore()).initializeTable(any(TableV2.class));
+        doNothing().when(getQueryStore()).initializeTable(any(TableCreationRequest.class));
 
         Table table = new Table(TestUtils.TEST_TABLE_NAME, 30);
-        TableV2 tableV2 = new TableV2();
-        tableV2.setTable(table);
-        tableManager.save(tableV2);
+        TableCreationRequest tableCreationRequest = new TableCreationRequest();
+        tableCreationRequest.setTable(table);
+        tableManager.save(tableCreationRequest);
         doReturn(table).when(getTableMetadataManager()).get(anyString());
 
         Table response = resources.client().target(String.format("/v1/tables/%s", table.getName())).request().get(Table.class);

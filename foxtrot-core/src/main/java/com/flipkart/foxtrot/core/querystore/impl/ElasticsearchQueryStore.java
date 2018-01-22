@@ -438,24 +438,25 @@ public class ElasticsearchQueryStore implements QueryStore {
 
     /**
      * This function puts template for a given table so that indices can use this template while indexing
-     * @param table : TableV2 object containing all information related to templates for table
+     * @param tableCreationRequest : TableCreationRequest object containing all information related to templates for table
      * @throws FoxtrotException
      */
     @Override
     @Timed
-    public void initializeTable(TableV2 table) throws FoxtrotException {
-        logger.info("Starting template initialization for table {}", table.getTable().getName());
+    public void initializeTable(TableCreationRequest tableCreationRequest) throws FoxtrotException {
+        logger.info("Starting template initialization for table {}", tableCreationRequest.getTable().getName());
 
-        String tableName = table.getTable().getName();
-        PutIndexTemplateRequest putIndexTemplateRequest = getFoxtrotTableTemplateMappings(tableName, table.getTableTemplate());
+        String tableName = tableCreationRequest.getTable().getName();
+        PutIndexTemplateRequest putIndexTemplateRequest = getFoxtrotTableTemplateMappings(tableName, tableCreationRequest.getTableTemplate());
         PutIndexTemplateResponse response = connection.getClient()
                 .admin()
                 .indices()
                 .putTemplate(putIndexTemplateRequest)
                 .actionGet();
         if (!response.isAcknowledged()) {
+            logger.error("Template creation failed for table {}", tableName, response);
             throw FoxtrotExceptions.createTableInitializationException(
-                    table.getTable(),
+                    tableCreationRequest.getTable(),
                     "Template initialization failed. Check settings and mappings"
             );
         }
@@ -483,7 +484,7 @@ public class ElasticsearchQueryStore implements QueryStore {
         try {
             mappings = mapper.writeValueAsString(indexTemplate.getMappings());
         } catch (JsonProcessingException e) {
-            logger.error("Json exception thrown in putIndexTemplateRequest by mapper : ", e.getMessage());
+            logger.error("Json exception thrown in putIndexTemplateRequest by mapper : ", e.getStackTrace());
             throw FoxtrotExceptions.createBadRequestException(table,
                     String.format("Template initialization failed for table - %s due to json exception while parsing mappings.", table));
         }
@@ -494,16 +495,38 @@ public class ElasticsearchQueryStore implements QueryStore {
 
             templateMappings = XContentFactory.jsonBuilder().copyCurrentStructure(parser);
         } catch (Exception e) {
-            logger.error("Exception thrown in putIndexTemplateRequest : ", e.getMessage());
+            logger.error("Exception thrown in putIndexTemplateRequest : ", e.getStackTrace());
             throw FoxtrotExceptions.createBadRequestException(table,
                     String.format("Template initialization failed for table - %s", table));
         }
 
         return new PutIndexTemplateRequest()
-                .name(String.format("template_foxtrot_%s_mappings", table))
-                .template(String.format("foxtrot-%s-*", table))
+                .name(String.format(ElasticsearchUtils.TEMPLATE_NAME_FORMAT, table))
+                .template(String.format(ElasticsearchUtils.TEMPLATE_MATCH_REGEX, table))
                 .settings(templateSettings)
                 .mapping(ElasticsearchUtils.DOCUMENT_TYPE_NAME, templateMappings);
+    }
+
+    /**
+     * This function updates the index template for the given table/
+     * @param tableName : table name
+     * @param indexTemplate : index template containing settings and mappings that need to be put in template
+     * @throws FoxtrotException
+     */
+    @Override
+    public void updateTableIndexTemplate(String tableName, IndexTemplate indexTemplate) throws FoxtrotException {
+        logger.info("Starting index template updation for table {}", tableName);
+        PutIndexTemplateRequest putIndexTemplateRequest = getFoxtrotTableTemplateMappings(tableName, indexTemplate);
+        PutIndexTemplateResponse response = connection.getClient()
+                .admin()
+                .indices()
+                .putTemplate(putIndexTemplateRequest)
+                .actionGet();
+        if (!response.isAcknowledged()) {
+            logger.error("Template updation failed for table {}", tableName, response);
+            throw FoxtrotExceptions.createIndexTemplateUpdationException(tableName, "Template updation failed. Check settings and mappings");
+        }
+        logger.info("Index template updation for table {} done", tableName);
     }
 
 }
