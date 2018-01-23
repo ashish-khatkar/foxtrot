@@ -1,6 +1,9 @@
 package com.flipkart.foxtrot.core.table.impl;
 
+import com.flipkart.foxtrot.common.IndexTemplate;
 import com.flipkart.foxtrot.common.Table;
+import com.flipkart.foxtrot.common.TableCreationRequest;
+import com.flipkart.foxtrot.common.TableUpdationRequest;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
@@ -26,16 +29,15 @@ public class FoxtrotTableManager implements TableManager {
         this.dataStore = dataStore;
     }
 
-
     @Override
-    public void save(Table table) throws FoxtrotException {
-        validateTableParams(table);
-        if (metadataManager.exists(table.getName())) {
-            throw FoxtrotExceptions.createTableExistsException(table.getName());
+    public void save(TableCreationRequest tableCreationRequest) throws FoxtrotException {
+        validateTableParams(tableCreationRequest.getTable());
+        if (metadataManager.exists(tableCreationRequest.getTable().getName())) {
+            throw FoxtrotExceptions.createTableExistsException(tableCreationRequest.getTable().getName());
         }
-        queryStore.initializeTable(table.getName());
-        dataStore.initializeTable(table);
-        metadataManager.save(table);
+        queryStore.initializeTable(tableCreationRequest);
+        dataStore.initializeTable(tableCreationRequest.getTable());
+        metadataManager.save(tableCreationRequest.getTable());
     }
 
     @Override
@@ -53,12 +55,19 @@ public class FoxtrotTableManager implements TableManager {
     }
 
     @Override
-    public void update(Table table) throws FoxtrotException {
-        validateTableParams(table);
-        if (!metadataManager.exists(table.getName())) {
-            throw FoxtrotExceptions.createTableMissingException(table.getName());
+    public void update(TableUpdationRequest tableUpdationRequest) throws FoxtrotException {
+        validateTableUpdateParams(tableUpdationRequest);
+        if (!metadataManager.exists(tableUpdationRequest.getTableName())) {
+            throw FoxtrotExceptions.createTableMissingException(tableUpdationRequest.getTableName());
         }
-        metadataManager.save(table);
+        if (null != tableUpdationRequest.getTtl()) {
+            Table table = metadataManager.get(tableUpdationRequest.getTableName());
+            table.setTtl(tableUpdationRequest.getTtl());
+            metadataManager.save(table);
+        }
+        if (null != tableUpdationRequest.getIndexTemplate()) {
+            queryStore.updateTableIndexTemplate(tableUpdationRequest.getTableName(), tableUpdationRequest.getIndexTemplate());
+        }
     }
 
     @Override
@@ -66,6 +75,14 @@ public class FoxtrotTableManager implements TableManager {
         // TODO Implement this once downstream implications are figured out
     }
 
+    private void validateTableUpdateParams(TableUpdationRequest tableUpdationRequest) throws FoxtrotException {
+        if (tableUpdationRequest == null ||
+                tableUpdationRequest.getTableName() == null ||
+                tableUpdationRequest.getTableName().trim().isEmpty() ||
+                (null != tableUpdationRequest.getTtl() && tableUpdationRequest.getTtl() <= 0)) {
+            throw FoxtrotExceptions.createBadRequestException(tableUpdationRequest != null ? tableUpdationRequest.getTableName() : null, "Invalid updation params");
+        }
+    }
     private void validateTableParams(Table table) throws FoxtrotException {
         if (table == null || table.getName() == null || table.getName().trim().isEmpty() || table.getTtl() <= 0) {
             throw FoxtrotExceptions.createBadRequestException(table != null ? table.getName() : null, "Invalid Table Params");

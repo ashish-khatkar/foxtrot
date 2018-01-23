@@ -90,10 +90,12 @@ public class HBaseDataStore implements DataStore {
         org.apache.hadoop.hbase.client.Table hTable = null;
         Document translatedDocument = null;
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         try {
             translatedDocument = translator.translate(table, document);
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save");
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save." + table);
             hTable.put(getPutForDocument(translatedDocument));
         } catch (JsonProcessingException e) {
             throw FoxtrotExceptions.createBadRequestException(table, e);
@@ -109,6 +111,9 @@ public class HBaseDataStore implements DataStore {
             }
             if (null != timer) {
                 timer.stop();
+            }
+            if (null != timerApp) {
+                timerApp.stop();
             }
         }
         return translatedDocument;
@@ -129,17 +134,20 @@ public class HBaseDataStore implements DataStore {
                 if (document == null) {
                     errorMessages.add("null document at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount");
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount." + table);
                     continue;
                 }
                 if (document.getId() == null || document.getId().trim().isEmpty()) {
                     errorMessages.add("null/empty document id at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount");
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount." + table);
                     continue;
                 }
 
                 if (document.getData() == null) {
                     errorMessages.add("null document data at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount");
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount." + table);
                     continue;
                 }
                 Document translatedDocument = translator.translate(table, document);
@@ -155,10 +163,13 @@ public class HBaseDataStore implements DataStore {
 
         org.apache.hadoop.hbase.client.Table hTable = null;
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         try {
             MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase", puts.size());
+            MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase." + table, puts.size());
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk");
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk." + table);
             hTable.put(puts);
         } catch (IOException e) {
             throw FoxtrotExceptions.createConnectionException(table, e);
@@ -173,6 +184,9 @@ public class HBaseDataStore implements DataStore {
             if (null != timer) {
                 timer.stop();
             }
+            if (null != timerApp) {
+                timerApp.stop();
+            }
         }
         return translatedDocuments.build();
     }
@@ -182,6 +196,7 @@ public class HBaseDataStore implements DataStore {
     public Document get(final Table table, String id) throws FoxtrotException {
         org.apache.hadoop.hbase.client.Table hTable = null;
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         try {
             Get get = new Get(Bytes.toBytes(translator.rawStorageIdFromDocumentId(table, id)))
                     .addColumn(COLUMN_FAMILY, DOCUMENT_FIELD_NAME)
@@ -190,6 +205,7 @@ public class HBaseDataStore implements DataStore {
                     .setMaxVersions(1);
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get");
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get." + table);
             Result getResult = hTable.get(get);
             if (!getResult.isEmpty()) {
                 byte[] data = getResult.getValue(COLUMN_FAMILY, DOCUMENT_FIELD_NAME);
@@ -215,6 +231,9 @@ public class HBaseDataStore implements DataStore {
             if (null != timer) {
                 timer.stop();
             }
+            if (null != timerApp) {
+                timerApp.stop();
+            }
         }
     }
 
@@ -226,6 +245,7 @@ public class HBaseDataStore implements DataStore {
         }
         org.apache.hadoop.hbase.client.Table hTable = null;
         Timer.Context timer = null;
+        Timer.Context timerApp = null;
         try {
             List<Get> gets = new ArrayList<>(ids.size());
             for (String id : ids) {
@@ -238,6 +258,7 @@ public class HBaseDataStore implements DataStore {
             }
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getBulk");
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getBulk." + table);
             Result[] getResults = hTable.get(gets);
             List<String> missingIds = new ArrayList<>();
             List<Document> results = new ArrayList<>(ids.size());
@@ -278,6 +299,9 @@ public class HBaseDataStore implements DataStore {
             }
             if (null != timer) {
                 timer.stop();
+            }
+            if (null != timerApp) {
+                timerApp.stop();
             }
         }
     }

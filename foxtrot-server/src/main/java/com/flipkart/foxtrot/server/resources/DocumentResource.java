@@ -67,8 +67,15 @@ public class DocumentResource {
     @Timed
     public Response saveDocuments(@PathParam("table") final String table,
                                   @Valid final List<Document> documents) throws FoxtrotException {
-        MetricUtil.getInstance().markMeter(DocumentResource.class, "saveDocuments.received.count", documents.size());
         List<String> failedDocuments = queryStore.save(table, documents);
+        /**
+         * global document received count
+         */
+        MetricUtil.getInstance().markMeter(DocumentResource.class, "saveDocuments.received.count", documents.size());
+        /**
+         * app level document received count
+         */
+        MetricUtil.getInstance().markMeter(DocumentResource.class, String.format("saveDocuments.%s.received.count", table), documents.size());
         if (failedDocuments.isEmpty()) {
             return Response.created(URI.create("/" + table)).build();
         } else {
