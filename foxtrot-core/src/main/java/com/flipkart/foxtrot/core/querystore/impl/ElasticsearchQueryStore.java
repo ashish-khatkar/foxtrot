@@ -510,6 +510,31 @@ public class ElasticsearchQueryStore implements QueryStore {
     }
 
     /**
+     * This function returns the default PutIndexTemplateRequest for a given table.
+     * For ex : if table name is bro template created will be : template_foxtrot_bro_mappings
+     * This mapping will be applied to all indices with names of type foxtrot-bro--*
+     * @param table : Table name
+     * @return : PutIndexTemplateRequest object
+     * @throws FoxtrotException
+     */
+    private PutIndexTemplateRequest getDefaultTableTemplateMappings(String table) throws FoxtrotException {
+        Settings defaultSettings = ElasticsearchUtils.getDefaultSettings();
+        XContentBuilder defaultMappings;
+        try {
+            defaultMappings = ElasticsearchUtils.getDocumentMapping();
+        } catch (IOException e) {
+            logger.error("IO Exception in utils getDocumentMapping", e);
+            throw FoxtrotExceptions.createBadRequestException(table,
+                    "Template initialization failed");
+        }
+        return new PutIndexTemplateRequest()
+                .name(String.format(ElasticsearchUtils.TEMPLATE_NAME_FORMAT, table))
+                .template(String.format(ElasticsearchUtils.TEMPLATE_MATCH_REGEX, table))
+                .settings(defaultSettings)
+                .mapping(ElasticsearchUtils.DOCUMENT_TYPE_NAME, defaultMappings);
+    }
+
+    /**
      * This function returns the PutIndexTemplateRequest for a given table.
      * For ex : if table name is bro template created will be : template_foxtrot_bro_mappings
      * This mapping will be applied to all indices with names of type foxtrot-bro--*
@@ -519,6 +544,10 @@ public class ElasticsearchQueryStore implements QueryStore {
      * @throws FoxtrotException
      */
     private PutIndexTemplateRequest getFoxtrotTableTemplateMappings(String table, IndexTemplate indexTemplate) throws FoxtrotException {
+        if (null == indexTemplate) {
+            return getDefaultTableTemplateMappings(table);
+        }
+
         Object settings = indexTemplate.getSettings();
 
         Settings templateSettings = Settings.builder()

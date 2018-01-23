@@ -44,23 +44,11 @@ public class TableUpdationRequest {
         return tableName;
     }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
     public Integer getTtl() {
         return ttl;
     }
 
-    public void setTtl(Integer ttl) {
-        this.ttl = ttl;
-    }
-
     public IndexTemplate getIndexTemplate() {
         return indexTemplate;
-    }
-
-    public void setIndexTemplate(IndexTemplate indexTemplate) {
-        this.indexTemplate = indexTemplate;
     }
 }

@@ -204,8 +204,7 @@ public class FoxtrotTableManagerTest {
         table.setName("abcd");
         table.setTtl(10);
         doReturn(table).when(metadataManager).get("abcd");
-        TableUpdationRequest tableUpdationRequest = new TableUpdationRequest("abcd");
-        tableUpdationRequest.setTtl(10);
+        TableUpdationRequest tableUpdationRequest = new TableUpdationRequest("abcd", 10);
         tableManager.update(tableUpdationRequest);
     }
 

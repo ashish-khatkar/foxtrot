@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.joda.time.DateTime;
@@ -32,7 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -110,6 +113,22 @@ public class ElasticsearchUtils {
             logger.error("TEMPLATE_CREATION_FAILED", ex);
             return null;
         }
+    }
+
+    /**
+     * This function returns the default settings for index template
+     * @return
+     */
+    public static Settings getDefaultSettings() {
+        Map<String, String> defaultSettingsMap = new HashMap<>();
+        defaultSettingsMap.put("number_of_shards", "10");
+        defaultSettingsMap.put("number_of_replicas", "1");
+        defaultSettingsMap.put("codec", "best_compression");
+        defaultSettingsMap.put("refresh_interval", "600s");
+
+        return Settings.builder()
+                .put(defaultSettingsMap)
+                .build();
     }
 
     public static XContentBuilder getDocumentMapping() throws IOException {

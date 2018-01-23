@@ -10,7 +10,6 @@ public class TableCreationRequest {
     @NotNull
     private Table table;
 
-    @NotNull
     private IndexTemplate tableTemplate;
 
     public TableCreationRequest() {
