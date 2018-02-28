@@ -95,7 +95,7 @@ public class HBaseDataStore implements DataStore {
             translatedDocument = translator.translate(table, document);
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save");
-            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save." + table);
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "save." + table.getName());
             hTable.put(getPutForDocument(translatedDocument));
         } catch (JsonProcessingException e) {
             throw FoxtrotExceptions.createBadRequestException(table, e);
@@ -134,20 +134,20 @@ public class HBaseDataStore implements DataStore {
                 if (document == null) {
                     errorMessages.add("null document at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount");
-                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount." + table);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentCount." + table.getName());
                     continue;
                 }
                 if (document.getId() == null || document.getId().trim().isEmpty()) {
                     errorMessages.add("null/empty document id at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount");
-                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount." + table);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentIdCount." + table.getName());
                     continue;
                 }
 
                 if (document.getData() == null) {
                     errorMessages.add("null document data at index - " + i);
                     MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount");
-                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount." + table);
+                    MetricUtil.getInstance().markMeter(HBaseDataStore.class, "nullDocumentDataCount." + table.getName());
                     continue;
                 }
                 Document translatedDocument = translator.translate(table, document);
@@ -166,10 +166,10 @@ public class HBaseDataStore implements DataStore {
         Timer.Context timerApp = null;
         try {
             MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase", puts.size());
-            MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase." + table, puts.size());
+            MetricUtil.getInstance().markMeter(HBaseDataStore.class, "validDocsReceivedHbase." + table.getName(), puts.size());
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk");
-            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk." + table);
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "saveBulk." + table.getName());
             hTable.put(puts);
         } catch (IOException e) {
             throw FoxtrotExceptions.createConnectionException(table, e);
@@ -205,7 +205,7 @@ public class HBaseDataStore implements DataStore {
                     .setMaxVersions(1);
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get");
-            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get." + table);
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "get." + table.getName());
             Result getResult = hTable.get(get);
             if (!getResult.isEmpty()) {
                 byte[] data = getResult.getValue(COLUMN_FAMILY, DOCUMENT_FIELD_NAME);
@@ -258,7 +258,7 @@ public class HBaseDataStore implements DataStore {
             }
             hTable = tableWrapper.getTable(table);
             timer = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getBulk");
-            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getBulk." + table);
+            timerApp = MetricUtil.getInstance().startTimer(HBaseDataStore.class, "getBulk." + table.getName());
             Result[] getResults = hTable.get(gets);
             List<String> missingIds = new ArrayList<>();
             List<Document> results = new ArrayList<>(ids.size());
